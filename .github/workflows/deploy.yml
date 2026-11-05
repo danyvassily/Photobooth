@@ -1,0 +1,47 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: vercel-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Generates public/mediapipe/wasm from node_modules; WASM crate artifacts
+      # are versioned, so no Rust toolchain is needed here.
+      - name: Prepare assets
+        run: pnpm build:wasm
+
+      - name: Deploy to Vercel (production)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: npx vercel@latest deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel (preview)
+        if: github.event_name == 'pull_request'
+        run: npx vercel@latest deploy --yes --token=${{ secrets.VERCEL_TOKEN }}
