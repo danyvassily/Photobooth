@@ -1,0 +1,15 @@
+{
+  "name": "photobooth-core",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "photobooth_core_bg.wasm",
+    "photobooth_core.js",
+    "photobooth_core.d.ts"
+  ],
+  "main": "photobooth_core.js",
+  "types": "photobooth_core.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

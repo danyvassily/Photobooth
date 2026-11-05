@@ -9,7 +9,6 @@ dist/
 # Rust
 target/
 rust/**/target/
-Cargo.lock
 
 # Vercel
 .vercel
