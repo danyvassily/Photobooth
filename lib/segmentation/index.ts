@@ -1,3 +1,10 @@
+import {
+  CDN_SEGMENTER_MODEL,
+  LOCAL_SEGMENTER_MODEL,
+  pickAsset,
+  pickVisionWasmDir,
+} from '@/lib/mediapipe/assets';
+
 let segmenterInstance: unknown = null;
 let isSegmenterLoading = false;
 
@@ -10,14 +17,15 @@ export async function initImageSegmenter(): Promise<boolean> {
 
   try {
     const { FilesetResolver, ImageSegmenter } = await import('@mediapipe/tasks-vision');
-    const vision = await FilesetResolver.forVisionTasks(
-      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm'
-    );
+    const [wasmDir, modelPath] = await Promise.all([
+      pickVisionWasmDir(),
+      pickAsset(LOCAL_SEGMENTER_MODEL, CDN_SEGMENTER_MODEL),
+    ]);
+    const vision = await FilesetResolver.forVisionTasks(wasmDir);
 
     segmenterInstance = await ImageSegmenter.createFromOptions(vision, {
       baseOptions: {
-        modelAssetPath:
-          'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite',
+        modelAssetPath: modelPath,
         delegate: 'GPU',
       },
       runningMode: 'IMAGE',

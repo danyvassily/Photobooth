@@ -1,9 +1,12 @@
-const CACHE_NAME = 'photobooth-v3-cache-v1';
+const CACHE_NAME = 'photobooth-v3-cache-v2';
 const PRECACHE_ASSETS = [
   '/',
   '/manifest.json',
   '/wasm/photobooth_core_bg.wasm',
   '/wasm/photobooth_core.js',
+  // Local AR / segmentation assets: required for offline AR.
+  '/models/face_landmarker.task',
+  '/models/selfie_segmenter.tflite',
 ];
 
 self.addEventListener('install', (event) => {
