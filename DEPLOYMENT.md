@@ -35,13 +35,25 @@ pnpm dev                # http://localhost:3000
 
 # vérifications locales avant push
 pnpm typecheck
-pnpm test               # vitest : 15 tests
+pnpm test               # vitest : 18 tests
 pnpm build              # inclut le build WASM
 ```
 
 - Push sur une branche avec PR ouverte ou push direct → **déploiement Preview** automatique.
 - Merge dans `main` → **déploiement Production** automatique.
 - Chaque déploiement est visible dans `vercel ls photobooth` et dans le dashboard.
+
+### Tests end-to-end
+
+Les e2e utilisent la caméra factice de Playwright et chargent MediaPipe (lourd) :
+
+```bash
+pnpm exec playwright install chromium webkit   # une fois
+npx playwright test --workers=1                # 3 moteurs, ~2 min
+```
+
+`--workers=1` est recommandé en local : en parallèle, WebKit peut dépasser le délai du
+téléchargement du JPEG (charge CPU MediaPipe).
 
 ## Rollback
 

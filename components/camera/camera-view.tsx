@@ -17,8 +17,9 @@ import { useCamera } from '@/lib/camera/use-camera';
 import { usePhotoboothSession } from '@/hooks/use-photobooth-session';
 import { AccessoryId, PlacedAccessory, ThemeId } from '@/types';
 import { detectFacesFromVideo, initFaceLandmarker } from '@/lib/face-tracking';
-import { drawAccessory } from '@/lib/accessories/renderer';
+import { ACCESSORIES_META, drawAccessory } from '@/lib/accessories/renderer';
 import { THEMES } from '@/lib/themes';
+import { ThemePreview } from '@/components/camera/theme-preview';
 
 interface CameraViewProps {
   session: ReturnType<typeof usePhotoboothSession>;
@@ -31,15 +32,24 @@ export function CameraView({
   session,
   onPhotosReady,
   onOpenThemes,
-  activeAccessoryId = 'aviator-sunglasses',
+  activeAccessoryId: initialAccessoryId = 'aviator-sunglasses',
 }: CameraViewProps) {
   const { state: camState, videoRef, startStream, toggleFacingMode, capturePhoto } = useCamera();
   const [isMirror, setIsMirror] = useState(true);
   const [arTrackingActive, setArTrackingActive] = useState(false);
+  const [activeAccessoryId, setActiveAccessoryId] = useState<AccessoryId | null>(
+    initialAccessoryId
+  );
+  const [showArPicker, setShowArPicker] = useState(false);
 
   const canvasArRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const lastCaptureTimeRef = useRef<number>(0);
+  // Face detection is throttled (~12 fps) and its result reused between ticks:
+  // running MediaPipe on every animation frame starves WebKit/iPad and freezes
+  // the capture + download flow.
+  const lastDetectionRef = useRef<number>(0);
+  const cachedFacesRef = useRef<Awaited<ReturnType<typeof detectFacesFromVideo>>>([]);
 
   const { state: sessState } = session;
 
@@ -66,7 +76,7 @@ export function CameraView({
       canvasArRef.current &&
       videoRef.current &&
       videoRef.current.readyState >= 2 &&
-      sessState.themeId === 'fun-ar'
+      activeAccessoryId !== null
     ) {
       const video = videoRef.current;
       const canvas = canvasArRef.current;
@@ -75,10 +85,14 @@ export function CameraView({
       if (ctx && canvas.width > 0 && canvas.height > 0) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Detect face landmarks
-        const faces = detectFacesFromVideo(video, performance.now());
+        // Detect face landmarks (throttled to ~12 fps)
+        const now = performance.now();
+        if (now - lastDetectionRef.current > 80) {
+          lastDetectionRef.current = now;
+          cachedFacesRef.current = detectFacesFromVideo(video, now);
+        }
 
-        faces.forEach((face) => {
+        cachedFacesRef.current.forEach((face) => {
           // Adjust coordinates for canvas size and mirroring
           const x = isMirror ? (1 - face.center.x) * canvas.width : face.center.x * canvas.width;
           const y = face.center.y * canvas.height;
@@ -86,7 +100,7 @@ export function CameraView({
 
           const placed: PlacedAccessory = {
             id: 'live-ar',
-            accessoryId: activeAccessoryId,
+            accessoryId: activeAccessoryId as AccessoryId,
             x,
             y,
             scale: face.scale * (canvas.width / 500),
@@ -97,7 +111,7 @@ export function CameraView({
       }
     }
     animationFrameRef.current = requestAnimationFrame(renderArLoop);
-  }, [sessState.themeId, activeAccessoryId, isMirror, videoRef]);
+  }, [activeAccessoryId, isMirror, videoRef]);
 
   useEffect(() => {
     animationFrameRef.current = requestAnimationFrame(renderArLoop);
@@ -118,7 +132,7 @@ export function CameraView({
   const handlePerformCapture = useCallback(async () => {
     try {
       session.triggerFlash();
-      const photo = await capturePhoto();
+      const photo = await capturePhoto(canvasArRef.current);
       session.addCapturedPhoto(photo);
     } catch (err) {
       console.error('Capture error:', err);
@@ -222,6 +236,86 @@ export function CameraView({
           className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
         />
 
+        {/* Live theme preview (before shooting) */}
+        <div className="absolute top-16 right-3 z-20 flex flex-col items-end gap-1">
+          <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[9px] font-bold uppercase tracking-wider text-white/80">
+            Aperçu
+          </span>
+          <button
+            onClick={onOpenThemes}
+            title="Modifier le thème"
+            aria-label="Aperçu du tirage — modifier le thème"
+            className="rounded-lg overflow-hidden border border-white/20 shadow-lg bg-black/40 p-1 backdrop-blur-md active:scale-95 transition"
+          >
+            <ThemePreview themeId={sessState.themeId} formatId={sessState.formatId} width={66} />
+          </button>
+        </div>
+
+        {/* AR accessory picker (works with every theme) */}
+        <div className="absolute bottom-3 left-0 right-0 z-20 px-3">
+          <div className="flex items-center gap-2 mb-2">
+            <button
+              onClick={() => setShowArPicker((v) => !v)}
+              aria-label="Accessoires AR"
+              className={`px-2.5 py-1.5 rounded-full text-[11px] font-bold border backdrop-blur-md transition ${
+                activeAccessoryId
+                  ? 'bg-pink-500/90 text-white border-pink-300/40'
+                  : 'bg-black/50 text-white/80 border-white/15'
+              }`}
+            >
+              😎 AR{activeAccessoryId ? ' · on' : ''}
+            </button>
+            {arTrackingActive ? (
+              <span className="px-2 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-bold">
+                suivi visage OK
+              </span>
+            ) : (
+              <span className="px-2 py-1 rounded-full bg-black/50 border border-white/10 text-white/50 text-[10px] font-bold">
+                suivi indisponible
+              </span>
+            )}
+            {activeAccessoryId && (
+              <button
+                onClick={() => setActiveAccessoryId(null)}
+                className="px-2 py-1 rounded-full bg-black/50 border border-white/15 text-white/70 text-[10px] font-bold"
+              >
+                retirer
+              </button>
+            )}
+          </div>
+
+          {showArPicker && (
+            <div className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
+              <button
+                onClick={() => setActiveAccessoryId(null)}
+                className={`shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border backdrop-blur-md transition ${
+                  activeAccessoryId === null
+                    ? 'bg-white text-slate-900 border-white'
+                    : 'bg-black/50 text-white/70 border-white/15'
+                }`}
+              >
+                Aucun
+              </button>
+              {ACCESSORIES_META.map((acc) => (
+                <button
+                  key={acc.id}
+                  onClick={() => setActiveAccessoryId(acc.id)}
+                  title={acc.name}
+                  aria-label={acc.name}
+                  className={`shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border backdrop-blur-md transition ${
+                    activeAccessoryId === acc.id
+                      ? 'bg-pink-500 text-white border-pink-300/50'
+                      : 'bg-black/50 text-white/75 border-white/15'
+                  }`}
+                >
+                  <span className="mr-1">{acc.icon}</span>
+                  {acc.name.split(' ')[0]}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Active Countdown Big Display */}
         {sessState.step === 'countdown' && (
           <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-[2px] transition-all">
@@ -309,42 +403,43 @@ export function CameraView({
       {/* Bottom Action Controls */}
       <div className="w-full bg-slate-950/90 backdrop-blur-md border-t border-slate-900 px-6 py-4 pb-safe flex flex-col gap-3">
         {sessState.step === 'idle' ? (
-          <div className="flex items-center justify-between max-w-xl mx-auto w-full gap-4">
-            {/* Timer duration toggle */}
-            <div className="flex items-center rounded-xl bg-slate-900 p-1 border border-slate-800">
-              {([3, 5, 10] as const).map((dur) => (
-                <button
-                  key={dur}
-                  onClick={() => session.setTimerDuration(dur)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    sessState.timerDuration === dur
-                      ? 'bg-pink-500 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {dur}s
-                </button>
-              ))}
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-between max-w-xl mx-auto w-full gap-2.5">
+            {/* Timer duration + theme picker (mobile-friendly row) */}
+            <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2">
+              <div className="flex items-center rounded-xl bg-slate-900 p-1 border border-slate-800 shrink-0">
+                {([3, 5, 10] as const).map((dur) => (
+                  <button
+                    key={dur}
+                    onClick={() => session.setTimerDuration(dur)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                      sessState.timerDuration === dur
+                        ? 'bg-pink-500 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {dur}s
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={onOpenThemes}
+                aria-label="Choisir un thème"
+                title="Choisir un thème"
+                className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition shrink-0"
+              >
+                <Sparkles className="w-4 h-4 text-pink-400" />
+                <span>Thème</span>
+              </button>
             </div>
 
-            {/* Giant Main Start Button */}
+            {/* Giant Main Start Button — full width on phones, no clipping */}
             <button
               onClick={() => session.start4PhotoSession()}
-              className="relative group px-8 py-3.5 rounded-full bg-gradient-to-r from-pink-500 via-rose-500 to-indigo-600 text-white font-extrabold text-base tracking-wide shadow-xl shadow-pink-500/30 hover:shadow-pink-500/50 hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5"
+              className="relative group w-full sm:w-auto justify-center px-5 sm:px-8 py-3.5 rounded-full bg-gradient-to-r from-pink-500 via-rose-500 to-indigo-600 text-white font-extrabold text-sm sm:text-base tracking-wide shadow-xl shadow-pink-500/30 hover:shadow-pink-500/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2.5"
             >
-              <Camera className="w-5 h-5" />
-              <span>Démarrer (4 photos)</span>
-            </button>
-
-            {/* Theme switcher button */}
-            <button
-              onClick={onOpenThemes}
-              aria-label="Choisir un thème"
-              title="Choisir un thème"
-              className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition"
-            >
-              <Sparkles className="w-4 h-4 text-pink-400" />
-              <span className="hidden sm:inline">Thème</span>
+              <Camera className="w-5 h-5 shrink-0" />
+              <span className="whitespace-nowrap">Démarrer (4 photos)</span>
             </button>
           </div>
         ) : (

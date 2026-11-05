@@ -49,7 +49,7 @@ test.describe('Photobooth V3 — full session', () => {
 
     // Export: a real JPEG blob with the mandated filename
     const [download] = await Promise.all([
-      page.waitForEvent('download', { timeout: 30000 }),
+      page.waitForEvent('download', { timeout: 60000 }),
       page.getByText('Enregistrer JPEG').click(),
     ]);
     expect(download.suggestedFilename()).toMatch(/^photobooth-\d{4}-\d{2}-\d{2}-\d{6}\.jpg$/);
@@ -113,5 +113,41 @@ test.describe('Photobooth V3 — full session', () => {
 
     await page.locator('button[aria-label="Quitter le mode borne"]').click();
     await expect(page.getByText(/BORNE ÉVÉNEMENT/)).toHaveCount(0);
+  });
+});
+
+test.describe('Photobooth V3 — capture screen (mobile layout, preview, AR)', () => {
+  test.setTimeout(60_000);
+
+  test('bottom controls never overflow, theme preview and AR picker are available', async ({ page }) => {
+    await page.goto('/');
+    await ensureCamera(page);
+
+    const viewport = page.viewportSize();
+    expect(viewport).not.toBeNull();
+    const vw = viewport!.width;
+
+    // Regression: every control of the bottom bar must stay inside the screen
+    for (const label of ['3s', '5s', '10s', 'Thème', 'Démarrer (4 photos)']) {
+      const box = await page.getByRole('button', { name: label, exact: false }).first().boundingBox();
+      expect(box, `${label} not rendered`).not.toBeNull();
+      expect(box!.x).toBeGreaterThanOrEqual(-1);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(vw + 1);
+    }
+
+    // Live print preview available before shooting
+    const preview = page.locator('canvas[aria-label^="Aperçu du tirage"]');
+    await expect(preview).toBeVisible();
+
+    // AR accessories are usable before capturing (glasses + wig)
+    await page.getByRole('button', { name: 'Accessoires AR' }).click();
+    await expect(page.getByRole('button', { name: 'Lunettes Aviateur' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Perruque' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Perruque' }).click();
+    await expect(page.getByRole('button', { name: 'Accessoires AR' })).toContainText('on');
+
+    await page.getByRole('button', { name: 'retirer' }).click();
+    await expect(page.getByRole('button', { name: 'Accessoires AR' })).not.toContainText('on');
   });
 });

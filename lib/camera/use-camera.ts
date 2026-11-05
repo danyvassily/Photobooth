@@ -98,7 +98,9 @@ export function useCamera() {
     startStream(nextFacing);
   }, [state.facingMode, startStream]);
 
-  const capturePhoto = useCallback(async (): Promise<{ blob: Blob; dataUrl: string; width: number; height: number }> => {
+  const capturePhoto = useCallback(async (
+    overlay?: HTMLCanvasElement | null
+  ): Promise<{ blob: Blob; dataUrl: string; width: number; height: number }> => {
     if (!videoRef.current || !streamRef.current) {
       throw new Error('Camera stream not active');
     }
@@ -120,6 +122,14 @@ export function useCamera() {
     }
 
     ctx.drawImage(video, 0, 0, width, height);
+
+    // Burn the live AR overlay (accessories) into the captured frame. The
+    // overlay is already drawn in display space, so it is composited without
+    // the mirror transform applied above.
+    if (overlay && overlay.width > 0 && overlay.height > 0) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(overlay, 0, 0, width, height);
+    }
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
     const blob = await new Promise<Blob>((resolve, reject) => {

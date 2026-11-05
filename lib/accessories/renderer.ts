@@ -18,6 +18,7 @@ export const ACCESSORIES_META: AccessoryMeta[] = [
   { id: 'crown', name: 'Couronne Royale', icon: '👑', category: 'hat' },
   { id: 'mustache', name: 'Moustache Rétro', icon: '🥸', category: 'fun' },
   { id: 'cat-ears', name: 'Oreilles de Chat', icon: '🐱', category: 'fun' },
+  { id: 'wig', name: 'Perruque', icon: '💇', category: 'fun' },
 ];
 
 /**
@@ -65,6 +66,9 @@ export function drawAccessory(
       break;
     case 'cat-ears':
       drawCatEars(ctx);
+      break;
+    case 'wig':
+      drawWig(ctx);
       break;
   }
 
@@ -445,4 +449,61 @@ function drawCatEars(ctx: CanvasRenderingContext2D): void {
   ctx.fill();
 
   ctx.restore();
+}
+
+/**
+ * Long wavy wig: hair mass framing the face, drawn around the origin so that a
+ * face-centred placement (mediapipe landmark centre) puts the hair behind the
+ * forehead and over the shoulders.
+ */
+function drawWig(ctx: CanvasRenderingContext2D): void {
+  const hairDark = '#2b1a12';
+  const hairLight = '#4a2c1d';
+
+  // Back mass (behind the head)
+  const back = ctx.createLinearGradient(-90, -70, 90, 130);
+  back.addColorStop(0, hairLight);
+  back.addColorStop(1, hairDark);
+  ctx.fillStyle = back;
+  ctx.beginPath();
+  ctx.moveTo(-80, -40);
+  ctx.quadraticCurveTo(-96, 60, -70, 130);
+  ctx.quadraticCurveTo(-40, 150, 0, 140);
+  ctx.quadraticCurveTo(40, 150, 70, 130);
+  ctx.quadraticCurveTo(96, 60, 80, -40);
+  ctx.quadraticCurveTo(0, -78, -80, -40);
+  ctx.closePath();
+  ctx.fill();
+
+  // Fringe / hairline over the forehead
+  ctx.fillStyle = hairDark;
+  ctx.beginPath();
+  ctx.moveTo(-76, -46);
+  ctx.quadraticCurveTo(-50, -78, 0, -74);
+  ctx.quadraticCurveTo(50, -78, 76, -46);
+  ctx.quadraticCurveTo(58, -20, 36, -28);
+  ctx.quadraticCurveTo(16, -8, -4, -26);
+  ctx.quadraticCurveTo(-30, -6, -44, -28);
+  ctx.quadraticCurveTo(-62, -18, -76, -46);
+  ctx.closePath();
+  ctx.fill();
+
+  // Side strands (kept outside the eye area so the face stays visible)
+  ctx.strokeStyle = hairLight;
+  ctx.lineWidth = 7;
+  ctx.lineCap = 'round';
+  [-1, 1].forEach((side) => {
+    ctx.beginPath();
+    ctx.moveTo(side * 74, -30);
+    ctx.quadraticCurveTo(side * 92, 40, side * 78, 116);
+    ctx.stroke();
+  });
+
+  // Soft sheen
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(-40, -62);
+  ctx.quadraticCurveTo(-10, -70, 26, -60);
+  ctx.stroke();
 }

@@ -76,7 +76,8 @@ export type AccessoryId =
   | 'party-hat'
   | 'crown'
   | 'mustache'
-  | 'cat-ears';
+  | 'cat-ears'
+  | 'wig';
 
 export interface FacePose {
   roll: number;
