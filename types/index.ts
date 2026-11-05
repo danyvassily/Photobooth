@@ -160,6 +160,7 @@ export interface StoredPrint {
   placedAccessories: PlacedAccessory[];
   customText?: string;
   eventName?: string;
+  colorStudioBg?: ColorStudioBackground;
 }
 
 export interface EventKioskSettings {

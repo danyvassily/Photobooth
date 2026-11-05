@@ -18,8 +18,13 @@ test.describe('Photobooth V3 End-to-End Test Suite', () => {
   test('opens theme drawer and selects Korean Life4Cuts theme', async ({ page }) => {
     await page.goto('/');
 
-    // Click on Theme button
-    await page.locator('button:has-text("Classic Photobooth")').first().click();
+    // Header pill is hidden on phones → fall back to the camera "Thème" button
+    const pill = page.locator('header button').filter({ hasText: /Classic Photobooth/ }).first();
+    if (await pill.isVisible().catch(() => false)) {
+      await pill.click();
+    } else {
+      await page.locator('button[aria-label="Choisir un thème"]').first().click();
+    }
 
     // Check drawer opened
     await expect(page.locator('h2')).toContainText('Choisir un Thème (12 Thèmes)');

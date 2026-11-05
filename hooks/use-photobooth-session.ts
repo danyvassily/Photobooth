@@ -1,7 +1,15 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FormatId, PhotoCapture, SessionStep, ThemeId } from '@/types';
+import {
+  ColorStudioBackground,
+  FormatId,
+  ImageAdjustments,
+  PhotoCapture,
+  PlacedAccessory,
+  SessionStep,
+  ThemeId,
+} from '@/types';
 import { THEMES } from '@/lib/themes';
 
 export interface PhotoboothSessionState {
@@ -15,6 +23,10 @@ export interface PhotoboothSessionState {
   isPaused: boolean;
   flashActive: boolean;
   retakeTargetIndex: number | null;
+  restoredAdjustments?: ImageAdjustments;
+  restoredAccessories?: PlacedAccessory[];
+  restoredCustomText?: string;
+  restoredColorStudioBg?: ColorStudioBackground;
   error?: string;
 }
 
@@ -33,6 +45,8 @@ export function usePhotoboothSession(initialTheme: ThemeId = 'classic') {
   });
 
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRemainingRef = useRef(0);
+  const countdownCallbackRef = useRef<(() => void) | null>(null);
 
   // Web Audio tone synthesizer for countdown and shutter
   const playTone = useCallback((freq: number, duration: number, type: OscillatorType = 'sine') => {
@@ -79,6 +93,8 @@ export function usePhotoboothSession(initialTheme: ThemeId = 'classic') {
 
   const cancelSession = useCallback(() => {
     clearCountdown();
+    countdownCallbackRef.current = null;
+    countdownRemainingRef.current = 0;
     setState((prev) => ({
       ...prev,
       step: 'idle',
@@ -87,43 +103,66 @@ export function usePhotoboothSession(initialTheme: ThemeId = 'classic') {
       isPaused: false,
       flashActive: false,
       retakeTargetIndex: null,
+      restoredAdjustments: undefined,
+      restoredAccessories: undefined,
+      restoredCustomText: undefined,
+      restoredColorStudioBg: undefined,
     }));
   }, [clearCountdown]);
 
+  const startTicker = useCallback(() => {
+    clearCountdown();
+    countdownIntervalRef.current = setInterval(() => {
+      countdownRemainingRef.current -= 1;
+
+      if (countdownRemainingRef.current > 0) {
+        playTone(523.25, 0.1); // C5 beep
+        setState((prev) => ({ ...prev, countdownSeconds: countdownRemainingRef.current }));
+        return;
+      }
+
+      const onComplete = countdownCallbackRef.current;
+      clearCountdown();
+      countdownCallbackRef.current = null;
+      countdownRemainingRef.current = 0;
+      playTone(880, 0.2, 'triangle'); // A5 shutter beep
+      setState((prev) => ({ ...prev, countdownSeconds: 0 }));
+      onComplete?.();
+    }, 1000);
+  }, [clearCountdown, playTone]);
+
   const pauseSession = useCallback(() => {
+    clearCountdown();
     setState((prev) => ({ ...prev, isPaused: true }));
-  }, []);
+  }, [clearCountdown]);
 
   const resumeSession = useCallback(() => {
+    const shouldResumeCountdown =
+      state.step === 'countdown' &&
+      countdownRemainingRef.current > 0 &&
+      countdownCallbackRef.current !== null;
+
     setState((prev) => ({ ...prev, isPaused: false }));
-  }, []);
+    if (shouldResumeCountdown) startTicker();
+  }, [state.step, startTicker]);
 
   const startCountdown = useCallback(
     (onComplete: () => void) => {
       clearCountdown();
-      let remaining = state.timerDuration;
+      countdownCallbackRef.current = onComplete;
+      countdownRemainingRef.current = state.timerDuration;
+
       setState((prev) => ({
         ...prev,
         step: 'countdown',
-        countdownSeconds: remaining,
+        countdownSeconds: countdownRemainingRef.current,
         isPaused: false,
       }));
 
       playTone(523.25, 0.1); // C5 beep
-
-      countdownIntervalRef.current = setInterval(() => {
-        remaining -= 1;
-        if (remaining > 0) {
-          playTone(523.25, 0.1); // C5 beep
-          setState((prev) => ({ ...prev, countdownSeconds: remaining }));
-        } else {
-          clearCountdown();
-          playTone(880, 0.2, 'triangle'); // A5 shutter beep
-          onComplete();
-        }
-      }, 1000);
+      startTicker();
     },
-    [state.timerDuration, clearCountdown, playTone]
+    [state.timerDuration, clearCountdown, playTone, startTicker]
   );
 
   const triggerFlash = useCallback((callback?: () => void) => {
@@ -173,7 +212,77 @@ export function usePhotoboothSession(initialTheme: ThemeId = 'classic') {
     []
   );
 
+  const makePhotos = useCallback(
+    (incoming: Array<{ blob: Blob; dataUrl: string; width: number; height: number }>): PhotoCapture[] =>
+      incoming.slice(0, 4).map((photo, index) => ({
+        id: 'photo-' + Date.now() + '-' + index + '-' + Math.random().toString(36).substring(2, 6),
+        index,
+        ...photo,
+        timestamp: Date.now(),
+      })),
+    []
+  );
+
+  const loadPhotos = useCallback(
+    (incoming: Array<{ blob: Blob; dataUrl: string; width: number; height: number }>) => {
+      clearCountdown();
+      countdownCallbackRef.current = null;
+      countdownRemainingRef.current = 0;
+      const photos = makePhotos(incoming);
+      setState((prev) => ({
+        ...prev,
+        step: photos.length > 0 ? 'reviewing' : 'idle',
+        photos,
+        currentPhotoIndex: photos.length,
+        retakeTargetIndex: null,
+        isPaused: false,
+        restoredAdjustments: undefined,
+        restoredAccessories: undefined,
+        restoredCustomText: undefined,
+        restoredColorStudioBg: undefined,
+      }));
+    },
+    [clearCountdown, makePhotos]
+  );
+
+  const loadPrintIntoSession = useCallback(
+    (
+      incoming: Array<{ blob: Blob; dataUrl: string; width: number; height: number }>,
+      options: {
+        themeId?: ThemeId;
+        formatId?: FormatId;
+        adjustments?: ImageAdjustments;
+        accessories?: PlacedAccessory[];
+        customText?: string;
+        colorStudioBg?: ColorStudioBackground;
+      } = {}
+    ) => {
+      clearCountdown();
+      countdownCallbackRef.current = null;
+      countdownRemainingRef.current = 0;
+      const photos = makePhotos(incoming);
+      setState((prev) => ({
+        ...prev,
+        step: 'editing',
+        themeId: options.themeId ?? prev.themeId,
+        formatId: options.formatId ?? prev.formatId,
+        photos,
+        currentPhotoIndex: photos.length,
+        retakeTargetIndex: null,
+        isPaused: false,
+        restoredAdjustments: options.adjustments,
+        restoredAccessories: options.accessories,
+        restoredCustomText: options.customText,
+        restoredColorStudioBg: options.colorStudioBg,
+      }));
+    },
+    [clearCountdown, makePhotos]
+  );
+
   const start4PhotoSession = useCallback(() => {
+    clearCountdown();
+    countdownCallbackRef.current = null;
+    countdownRemainingRef.current = 0;
     setState((prev) => ({
       ...prev,
       step: 'preparing',
@@ -181,8 +290,12 @@ export function usePhotoboothSession(initialTheme: ThemeId = 'classic') {
       currentPhotoIndex: 0,
       retakeTargetIndex: null,
       isPaused: false,
+      restoredAdjustments: undefined,
+      restoredAccessories: undefined,
+      restoredCustomText: undefined,
+      restoredColorStudioBg: undefined,
     }));
-  }, []);
+  }, [clearCountdown]);
 
   const retakeSinglePhoto = useCallback((index: number) => {
     setState((prev) => ({
@@ -206,6 +319,8 @@ export function usePhotoboothSession(initialTheme: ThemeId = 'classic') {
 
   const resetToNewSession = useCallback(() => {
     clearCountdown();
+    countdownCallbackRef.current = null;
+    countdownRemainingRef.current = 0;
     setState((prev) => ({
       ...prev,
       step: 'idle',
@@ -214,6 +329,10 @@ export function usePhotoboothSession(initialTheme: ThemeId = 'classic') {
       retakeTargetIndex: null,
       isPaused: false,
       flashActive: false,
+      restoredAdjustments: undefined,
+      restoredAccessories: undefined,
+      restoredCustomText: undefined,
+      restoredColorStudioBg: undefined,
     }));
   }, [clearCountdown]);
 
@@ -232,6 +351,8 @@ export function usePhotoboothSession(initialTheme: ThemeId = 'classic') {
     startCountdown,
     triggerFlash,
     addCapturedPhoto,
+    loadPhotos,
+    loadPrintIntoSession,
     retakeSinglePhoto,
     pauseSession,
     resumeSession,

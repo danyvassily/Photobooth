@@ -7,7 +7,8 @@ import {
   ThemeConfig,
 } from '@/types';
 import { drawAccessory } from '@/lib/accessories/renderer';
-import { processImage } from '@/lib/image-processing';
+import { blendSegmentedMask, processImage } from '@/lib/image-processing';
+import { segmentPerson } from '@/lib/segmentation';
 
 export interface ComposeOptions {
   photos: PhotoCapture[];
@@ -18,6 +19,7 @@ export interface ComposeOptions {
   customText?: string;
   eventName?: string;
   colorStudioBg?: ColorStudioBackground;
+  segmentationEnabled?: boolean;
   quality?: number; // 0.85 to 0.98
 }
 
@@ -54,6 +56,7 @@ export async function composePrint(options: ComposeOptions): Promise<ComposeResu
     customText,
     eventName,
     colorStudioBg,
+    segmentationEnabled = false,
     quality = 0.94,
   } = options;
 
@@ -93,7 +96,8 @@ export async function composePrint(options: ComposeOptions): Promise<ComposeResu
       adjustments,
       theme,
       slotIndex,
-      colorStudioBg
+      colorStudioBg,
+      segmentationEnabled
     );
 
     // Render accessories tied to this photo slot (or general accessories)
@@ -187,7 +191,8 @@ async function drawProcessedPhotoSlot(
   adjustments: ImageAdjustments,
   theme: ThemeConfig,
   slotIndex: number,
-  colorStudioBg?: ColorStudioBackground
+  colorStudioBg?: ColorStudioBackground,
+  segmentationEnabled = false
 ): Promise<void> {
   const offscreen = document.createElement('canvas');
   offscreen.width = slot.width;
@@ -220,11 +225,44 @@ async function drawProcessedPhotoSlot(
   await processImage(imgData.data, slot.width, slot.height, adjustments);
   offCtx.putImageData(imgData, 0, 0);
 
+  const perPhotoColor =
+    theme.id === 'color-studio'
+      ? colorStudioBg?.perPhotoColors?.[slotIndex % Math.max(1, colorStudioBg?.perPhotoColors?.length ?? 1)] ||
+        colorStudioBg?.primaryColor ||
+        theme.backgroundColor
+      : null;
+
+  // Color Studio: replace the background with the selected color while keeping
+  // the person in front. If MediaPipe is unavailable the processed photo is
+  // drawn unchanged on top of a color frame (graceful fallback).
+  if (theme.id === 'color-studio' && segmentationEnabled && perPhotoColor) {
+    const mask = await segmentPerson(offscreen);
+    if (mask && mask.length === slot.width * slot.height) {
+      const [r, g, b] = hexToRgb(perPhotoColor);
+      const background = new Uint8ClampedArray(slot.width * slot.height * 4);
+      for (let i = 0; i < background.length; i += 4) {
+        background[i] = r;
+        background[i + 1] = g;
+        background[i + 2] = b;
+        background[i + 3] = 255;
+      }
+      const blended = new Uint8ClampedArray(slot.width * slot.height * 4);
+      await blendSegmentedMask(imgData.data, background, mask, blended, slot.width, slot.height);
+      offCtx.putImageData(new ImageData(blended, slot.width, slot.height), 0, 0);
+    }
+  }
+
   // Render slot onto master canvas (handling rotation if Polaroid)
   ctx.save();
   ctx.translate(slot.x + slot.width / 2, slot.y + slot.height / 2);
   if (slot.rotation) {
     ctx.rotate(slot.rotation);
+  }
+
+  // Color Studio per-photo background card
+  if (perPhotoColor) {
+    ctx.fillStyle = perPhotoColor;
+    ctx.fillRect(-slot.width / 2 - 18, -slot.height / 2 - 18, slot.width + 36, slot.height + 36);
   }
 
   // Draw Polaroid paper card if applicable
@@ -336,6 +374,22 @@ function drawThemeDecorations(
     }
   }
 
+  // Theme sticker decorations (Fun AR and any theme not already decorated above)
+  const stickers = theme.decorations?.stickers;
+  const hasCustomStickerArt =
+    theme.id === 'korean-life4cuts' ||
+    theme.id === 'party' ||
+    theme.id === 'romantic';
+  if (stickers?.length && !hasCustomStickerArt) {
+    ctx.font = '56px sans-serif';
+    ctx.textAlign = 'center';
+    const gap = Math.min(120, (canvasWidth - 80) / stickers.length);
+    const startX = canvasWidth / 2 - (gap * (stickers.length - 1)) / 2;
+    stickers.forEach((sticker, index) => {
+      ctx.fillText(sticker, startX + gap * index, headerHeight * 0.75);
+    });
+  }
+
   // Draw cut line between strips for 'double-strip' format
   if (format.id === 'double-strip') {
     ctx.strokeStyle = '#94a3b8';
@@ -349,6 +403,25 @@ function drawThemeDecorations(
   }
 
   ctx.restore();
+}
+
+function hexToRgb(color: string): [number, number, number] {
+  const hex = color.replace('#', '');
+  if (hex.length === 3) {
+    return [
+      parseInt(hex[0] + hex[0], 16),
+      parseInt(hex[1] + hex[1], 16),
+      parseInt(hex[2] + hex[2], 16),
+    ];
+  }
+  if (hex.length === 6) {
+    return [
+      parseInt(hex.slice(0, 2), 16),
+      parseInt(hex.slice(2, 4), 16),
+      parseInt(hex.slice(4, 6), 16),
+    ];
+  }
+  return [255, 255, 255];
 }
 
 function drawFestiveConfetti(ctx: CanvasRenderingContext2D, width: number, height: number): void {

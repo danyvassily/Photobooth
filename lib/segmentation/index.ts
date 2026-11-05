@@ -70,9 +70,10 @@ export async function segmentPerson(imageElement: HTMLImageElement | HTMLCanvasE
 
     const rawMask = result.categoryMask.getAsUint8Array();
     const mask = new Uint8Array(rawMask.length);
-    // category 0 = background, category 1 = person
+    // Any non-zero category is foreground. Both the Rust/WASM blender and the
+    // JS fallback expect 0..255 weights (255 = fully visible person).
     for (let i = 0; i < rawMask.length; i++) {
-      mask[i] = rawMask[i] === 1 ? 255 : 0;
+      mask[i] = rawMask[i] !== 0 ? 255 : 0;
     }
     return mask;
   } catch (err) {

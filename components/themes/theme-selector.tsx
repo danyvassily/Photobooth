@@ -10,6 +10,8 @@ interface ThemeSelectorProps {
   onClose: () => void;
   selectedThemeId: ThemeId;
   onSelectTheme: (id: ThemeId) => void;
+  /** When set (kiosk / event mode) only these themes are selectable. */
+  allowedThemeIds?: ThemeId[];
 }
 
 export function ThemeSelector({
@@ -17,8 +19,13 @@ export function ThemeSelector({
   onClose,
   selectedThemeId,
   onSelectTheme,
+  allowedThemeIds,
 }: ThemeSelectorProps) {
   if (!isOpen) return null;
+
+  const visibleThemes = allowedThemeIds
+    ? THEME_LIST.filter((theme) => allowedThemeIds.includes(theme.id))
+    : THEME_LIST;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm transition-all animate-fadeIn">
@@ -27,7 +34,7 @@ export function ThemeSelector({
         <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-pink-400" />
-            <h2 className="text-lg font-bold text-white">Choisir un Thème (12 Thèmes)</h2>
+            <h2 className="text-lg font-bold text-white">{`Choisir un Thème (${visibleThemes.length} Thèmes)`}</h2>
           </div>
           <button
             onClick={onClose}
@@ -39,7 +46,7 @@ export function ThemeSelector({
 
         {/* Themes Grid */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          {THEME_LIST.map((theme) => {
+          {visibleThemes.map((theme) => {
             const isSelected = theme.id === selectedThemeId;
             return (
               <button

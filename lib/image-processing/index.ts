@@ -72,6 +72,12 @@ export async function processImage(
   } else {
     jsProcessPixels(pixels, width, height, adjustments);
   }
+
+  // Apply the selected look after the manual sliders so presets are always
+  // visible in the composed print and never silently ignored.
+  if (adjustments.filterPreset) {
+    await applyFilterPreset(pixels, width, height, adjustments.filterPreset, forceEngine);
+  }
 }
 
 export async function applyFilterPreset(

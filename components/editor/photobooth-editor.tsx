@@ -30,13 +30,19 @@ import {
 import { THEMES, THEME_LIST } from '@/lib/themes';
 import { FORMATS, FORMAT_LIST } from '@/lib/formats';
 import { composePrint, ComposeResult } from '@/lib/export/composer';
+import { buildPrintFilename } from '@/lib/export/filename';
 import { ACCESSORIES_META } from '@/lib/accessories/renderer';
+import { createThumbnail } from '@/lib/images/thumbnail';
 import { savePrint } from '@/lib/storage';
 
 interface PhotoboothEditorProps {
   photos: PhotoCapture[];
   initialThemeId: ThemeId;
   initialFormatId: FormatId;
+  initialAdjustments?: ImageAdjustments;
+  initialAccessories?: PlacedAccessory[];
+  initialCustomText?: string;
+  initialColorStudioBg?: ColorStudioBackground;
   onBackToCamera: () => void;
   onRetakePhoto: (index: number) => void;
   onSavedToGallery: () => void;
@@ -46,6 +52,10 @@ export function PhotoboothEditor({
   photos,
   initialThemeId,
   initialFormatId,
+  initialAdjustments,
+  initialAccessories,
+  initialCustomText,
+  initialColorStudioBg,
   onBackToCamera,
   onRetakePhoto,
   onSavedToGallery,
@@ -54,7 +64,7 @@ export function PhotoboothEditor({
   const [formatId, setFormatId] = useState<FormatId>(initialFormatId);
   const [activeTab, setActiveTab] = useState<'themes' | 'formats' | 'filters' | 'adjust' | 'accessories' | 'text'>('themes');
 
-  const [adjustments, setAdjustments] = useState<ImageAdjustments>({
+  const baselineAdjustments = initialAdjustments ?? {
     brightness: 0,
     contrast: 0,
     saturation: 0,
@@ -64,20 +74,43 @@ export function PhotoboothEditor({
     vignette: 0,
     grain: 0,
     filterPreset: THEMES[initialThemeId].defaultFilter,
-  });
+  };
 
-  const [accessories, setAccessories] = useState<PlacedAccessory[]>([]);
-  const [customText, setCustomText] = useState<string>('');
-  const [colorStudioBg, setColorStudioBg] = useState<ColorStudioBackground>({
-    type: 'solid',
-    primaryColor: '#3b82f6',
-  });
+  const [adjustments, setAdjustments] = useState<ImageAdjustments>(baselineAdjustments);
+
+  const [accessories, setAccessories] = useState<PlacedAccessory[]>(initialAccessories ?? []);
+  const [customText, setCustomText] = useState<string>(initialCustomText ?? '');
+  const [colorStudioBg, setColorStudioBg] = useState<ColorStudioBackground>(
+    initialColorStudioBg ?? {
+      type: 'solid',
+      primaryColor: '#3b82f6',
+    }
+  );
 
   const [compositeResult, setCompositeResult] = useState<ComposeResult | null>(null);
   const [isComposing, setIsComposing] = useState(false);
   const [exportQuality, setExportQuality] = useState<number>(0.94);
   const [isSaved, setIsSaved] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Restore a print loaded from the gallery (originals + previous settings).
+  useEffect(() => {
+    setAdjustments(initialAdjustments ?? {
+      brightness: 0,
+      contrast: 0,
+      saturation: 0,
+      temperature: 0,
+      sepia: 0,
+      grayscale: false,
+      vignette: 0,
+      grain: 0,
+      filterPreset: THEMES[initialThemeId].defaultFilter,
+    });
+    setAccessories(initialAccessories ?? []);
+    setCustomText(initialCustomText ?? '');
+    setColorStudioBg(initialColorStudioBg ?? { type: 'solid', primaryColor: '#3b82f6' });
+  }, [initialAdjustments, initialAccessories, initialCustomText, initialColorStudioBg, initialThemeId]);
 
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -93,6 +126,7 @@ export function PhotoboothEditor({
         accessories,
         customText,
         colorStudioBg,
+        segmentationEnabled: themeId === 'color-studio',
         quality: exportQuality,
       });
       setCompositeResult(res);
@@ -146,38 +180,65 @@ export function PhotoboothEditor({
   // Save to IndexedDB
   const handleSaveToGallery = async () => {
     if (!compositeResult) return;
-    const stored: StoredPrint = {
-      id: 'print-' + Date.now(),
-      createdAt: Date.now(),
-      themeId,
-      formatId,
-      jpegBlob: compositeResult.blob,
-      thumbnailUrl: compositeResult.dataUrl,
-      originalPhotos: photos.map((p) => p.blob),
-      adjustments,
-      placedAccessories: accessories,
-      customText,
-    };
-    await savePrint(stored);
-    setIsSaved(true);
-    onSavedToGallery();
-    setTimeout(() => setIsSaved(false), 2500);
+    setSaveError(null);
+    try {
+      // WebKit can stall on large canvas decodes: never let the thumbnail
+      // generation block the export / persistence flow.
+      const thumbnailUrl =
+        (await Promise.race([
+          createThumbnail(compositeResult.dataUrl),
+          new Promise<string>((resolve) => setTimeout(() => resolve(''), 8000)),
+        ])) || compositeResult.dataUrl;
+      const stored: StoredPrint = {
+        id: 'print-' + Date.now(),
+        createdAt: Date.now(),
+        themeId,
+        formatId,
+        jpegBlob: compositeResult.blob,
+        thumbnailUrl,
+        originalPhotos: photos.map((p) => p.blob),
+        adjustments,
+        placedAccessories: accessories,
+        customText,
+        colorStudioBg: themeId === 'color-studio' ? colorStudioBg : undefined,
+      };
+      await savePrint(stored);
+      setIsSaved(true);
+      onSavedToGallery();
+      setTimeout(() => setIsSaved(false), 2500);
+    } catch (err) {
+      console.error('Failed to save print to gallery:', err);
+      setSaveError(
+        err instanceof DOMException && err.name === 'QuotaExceededError'
+          ? "Stockage local plein : supprimez d'anciens tirages dans la galerie."
+          : "Impossible d'enregistrer le tirage dans la galerie locale."
+      );
+    }
   };
 
-  // Download JPEG directly
-  const handleDownloadJpeg = () => {
+  // Download JPEG directly (saves to the gallery first, so the local copy is
+  // guaranteed even when the browser's download flow interrupts JS execution —
+  // observed on WebKit / Safari).
+  const handleDownloadJpeg = async () => {
     if (!compositeResult) return;
-    const now = new Date();
-    const dateStamp = now.toISOString().replace(/[-:T.]/g, '').slice(0, 14);
-    const filename = `photobooth-${dateStamp}.jpg`;
+
+    const filename = buildPrintFilename();
+    const objectUrl = URL.createObjectURL(compositeResult.blob);
 
     const a = document.createElement('a');
-    a.href = compositeResult.dataUrl;
+    a.href = objectUrl;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    handleSaveToGallery();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+
+    // Persist after the download has been handed to the browser.
+    try {
+      await handleSaveToGallery();
+    } catch {
+      /* storage errors are already surfaced through saveError */
+    }
   };
 
   // Native Web Share
@@ -185,7 +246,7 @@ export function PhotoboothEditor({
     if (!compositeResult) return;
     if (navigator.share && navigator.canShare) {
       try {
-        const file = new File([compositeResult.blob], 'photobooth.jpg', { type: 'image/jpeg' });
+        const file = new File([compositeResult.blob], buildPrintFilename(), { type: 'image/jpeg' });
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
@@ -194,7 +255,7 @@ export function PhotoboothEditor({
           });
           setShareSuccess(true);
           setTimeout(() => setShareSuccess(false), 2000);
-          handleSaveToGallery();
+          await handleSaveToGallery();
           return;
         }
       } catch (err) {
@@ -202,7 +263,7 @@ export function PhotoboothEditor({
       }
     }
     // Fallback: download
-    handleDownloadJpeg();
+    await handleDownloadJpeg();
   };
 
   return (
@@ -234,7 +295,7 @@ export function PhotoboothEditor({
         {/* Action bar below preview */}
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3 w-full max-w-md">
           <button
-            onClick={handleDownloadJpeg}
+            onClick={() => void handleDownloadJpeg()}
             className="flex-1 py-3 px-5 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-indigo-600 hover:opacity-95 text-white flex items-center justify-center gap-2 shadow-lg shadow-pink-500/25 transition active:scale-95"
           >
             <Download className="w-4 h-4" />
@@ -262,6 +323,12 @@ export function PhotoboothEditor({
           <div className="mt-3 px-4 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs font-semibold flex items-center gap-1.5 animate-fadeIn">
             <Check className="w-3.5 h-3.5" />
             <span>Tirage enregistré dans la galerie locale !</span>
+          </div>
+        )}
+
+        {saveError && (
+          <div className="mt-3 px-4 py-1.5 rounded-full bg-rose-950/80 border border-rose-800 text-rose-300 text-xs font-semibold">
+            {saveError}
           </div>
         )}
       </div>
@@ -522,6 +589,32 @@ export function PhotoboothEditor({
                       onChange={(e) => setColorStudioBg({ type: 'solid', primaryColor: e.target.value })}
                       className="w-7 h-7 rounded-full cursor-pointer bg-transparent border-0"
                     />
+                  </div>
+
+                  <div>
+                    <div className="text-[11px] font-semibold text-slate-400 mb-1.5">
+                      Couleur par photo (segmentation locale)
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {[0, 1, 2, 3].map((index) => {
+                        const colors = colorStudioBg.perPhotoColors ?? [];
+                        const value = colors[index] ?? colorStudioBg.primaryColor;
+                        return (
+                          <input
+                            key={index}
+                            type="color"
+                            aria-label={`Couleur photo ${index + 1}`}
+                            value={value}
+                            onChange={(e) => {
+                              const next = [...colors];
+                              next[index] = e.target.value;
+                              setColorStudioBg({ ...colorStudioBg, perPhotoColors: next });
+                            }}
+                            className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border border-slate-700"
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}

@@ -13,6 +13,7 @@ import {
   ZoomIn,
 } from 'lucide-react';
 import { StoredPrint } from '@/types';
+import { buildPrintFilename } from '@/lib/export/filename';
 import {
   clearAllPrints,
   deletePrint,
@@ -36,6 +37,7 @@ export function GalleryModal({
   const [selectedPrint, setSelectedPrint] = useState<StoredPrint | null>(null);
   const [quota, setQuota] = useState<StorageQuotaInfo | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [selectedPrintUrl, setSelectedPrintUrl] = useState<string | null>(null);
 
   const loadGallery = async () => {
     const list = await getAllPrints();
@@ -49,6 +51,16 @@ export function GalleryModal({
       loadGallery();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!selectedPrint) {
+      setSelectedPrintUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(selectedPrint.jpegBlob);
+    setSelectedPrintUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [selectedPrint]);
 
   if (!isOpen) return null;
 
@@ -68,19 +80,29 @@ export function GalleryModal({
 
   const handleDownload = (print: StoredPrint, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    const objectUrl = URL.createObjectURL(print.jpegBlob);
     const a = document.createElement('a');
-    a.href = print.thumbnailUrl;
-    a.download = `photobooth-${print.id}.jpg`;
+    a.href = objectUrl;
+    a.download = buildPrintFilename(new Date(print.createdAt));
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  };
+
+  const handleSelectForReedit = (print: StoredPrint) => {
+    onSelectPrintToReedit?.(print);
+    setSelectedPrint(null);
+    onClose();
   };
 
   const handleShare = async (print: StoredPrint, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (navigator.share && navigator.canShare) {
       try {
-        const file = new File([print.jpegBlob], 'photobooth.jpg', { type: 'image/jpeg' });
+        const file = new File([print.jpegBlob], buildPrintFilename(new Date(print.createdAt)), {
+          type: 'image/jpeg',
+        });
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
@@ -215,6 +237,15 @@ export function GalleryModal({
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {onSelectPrintToReedit && (
+                  <button
+                    onClick={() => handleSelectForReedit(selectedPrint)}
+                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 transition"
+                  >
+                    <ZoomIn className="w-4 h-4 text-pink-400" />
+                    <span>Ré-éditer</span>
+                  </button>
+                )}
                 <button
                   onClick={() => handleDownload(selectedPrint)}
                   className="px-4 py-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs font-bold flex items-center gap-1.5 transition"
@@ -240,7 +271,7 @@ export function GalleryModal({
             <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={selectedPrint.thumbnailUrl}
+                src={selectedPrintUrl ?? selectedPrint.thumbnailUrl}
                 alt="Aperçu grand format"
                 className="max-h-full max-w-full object-contain rounded-xl shadow-2xl border border-slate-800"
               />

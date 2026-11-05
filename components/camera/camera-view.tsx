@@ -339,6 +339,8 @@ export function CameraView({
             {/* Theme switcher button */}
             <button
               onClick={onOpenThemes}
+              aria-label="Choisir un thème"
+              title="Choisir un thème"
               className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition"
             >
               <Sparkles className="w-4 h-4 text-pink-400" />
