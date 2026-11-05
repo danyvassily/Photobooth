@@ -27,3 +27,4 @@ playwright-report/
 # IDEs
 .idea/
 .vscode/
+.env*
