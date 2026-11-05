@@ -1,0 +1,554 @@
+'use client';
+
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import {
+  Download,
+  Share2,
+  Sliders,
+  Sparkles,
+  Layers,
+  Palette,
+  RefreshCw,
+  Camera,
+  Check,
+  Undo2,
+  Smile,
+  Type,
+  ChevronLeft,
+} from 'lucide-react';
+import {
+  AccessoryId,
+  ColorStudioBackground,
+  FilterPresetId,
+  FormatId,
+  ImageAdjustments,
+  PhotoCapture,
+  PlacedAccessory,
+  StoredPrint,
+  ThemeId,
+} from '@/types';
+import { THEMES, THEME_LIST } from '@/lib/themes';
+import { FORMATS, FORMAT_LIST } from '@/lib/formats';
+import { composePrint, ComposeResult } from '@/lib/export/composer';
+import { ACCESSORIES_META } from '@/lib/accessories/renderer';
+import { savePrint } from '@/lib/storage';
+
+interface PhotoboothEditorProps {
+  photos: PhotoCapture[];
+  initialThemeId: ThemeId;
+  initialFormatId: FormatId;
+  onBackToCamera: () => void;
+  onRetakePhoto: (index: number) => void;
+  onSavedToGallery: () => void;
+}
+
+export function PhotoboothEditor({
+  photos,
+  initialThemeId,
+  initialFormatId,
+  onBackToCamera,
+  onRetakePhoto,
+  onSavedToGallery,
+}: PhotoboothEditorProps) {
+  const [themeId, setThemeId] = useState<ThemeId>(initialThemeId);
+  const [formatId, setFormatId] = useState<FormatId>(initialFormatId);
+  const [activeTab, setActiveTab] = useState<'themes' | 'formats' | 'filters' | 'adjust' | 'accessories' | 'text'>('themes');
+
+  const [adjustments, setAdjustments] = useState<ImageAdjustments>({
+    brightness: 0,
+    contrast: 0,
+    saturation: 0,
+    temperature: 0,
+    sepia: 0,
+    grayscale: false,
+    vignette: 0,
+    grain: 0,
+    filterPreset: THEMES[initialThemeId].defaultFilter,
+  });
+
+  const [accessories, setAccessories] = useState<PlacedAccessory[]>([]);
+  const [customText, setCustomText] = useState<string>('');
+  const [colorStudioBg, setColorStudioBg] = useState<ColorStudioBackground>({
+    type: 'solid',
+    primaryColor: '#3b82f6',
+  });
+
+  const [compositeResult, setCompositeResult] = useState<ComposeResult | null>(null);
+  const [isComposing, setIsComposing] = useState(false);
+  const [exportQuality, setExportQuality] = useState<number>(0.94);
+  const [isSaved, setIsSaved] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
+
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Update composition preview
+  const refreshPreview = useCallback(async () => {
+    setIsComposing(true);
+    try {
+      const res = await composePrint({
+        photos,
+        theme: THEMES[themeId],
+        format: FORMATS[formatId],
+        adjustments,
+        accessories,
+        customText,
+        colorStudioBg,
+        quality: exportQuality,
+      });
+      setCompositeResult(res);
+    } catch (e) {
+      console.error('Composition preview error:', e);
+    } finally {
+      setIsComposing(false);
+    }
+  }, [photos, themeId, formatId, adjustments, accessories, customText, colorStudioBg, exportQuality]);
+
+  // Debounce preview updates when sliders change
+  useEffect(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      refreshPreview();
+    }, 150);
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, [refreshPreview]);
+
+  // Handle Preset Filter click
+  const handleSelectFilter = (preset: FilterPresetId) => {
+    setAdjustments((prev) => ({
+      ...prev,
+      filterPreset: preset,
+      grayscale: preset === 'black-and-white',
+    }));
+  };
+
+  // Add / remove accessory
+  const toggleAccessory = (accId: AccessoryId) => {
+    const existing = accessories.find((a) => a.accessoryId === accId);
+    if (existing) {
+      setAccessories(accessories.filter((a) => a.accessoryId !== accId));
+    } else {
+      setAccessories([
+        ...accessories,
+        {
+          id: 'acc-' + Date.now(),
+          accessoryId: accId,
+          x: 0.5,
+          y: accId.includes('sunglasses') || accId.includes('visor') ? 0.38 : 0.22,
+          scale: 1,
+          rotation: 0,
+        },
+      ]);
+    }
+  };
+
+  // Save to IndexedDB
+  const handleSaveToGallery = async () => {
+    if (!compositeResult) return;
+    const stored: StoredPrint = {
+      id: 'print-' + Date.now(),
+      createdAt: Date.now(),
+      themeId,
+      formatId,
+      jpegBlob: compositeResult.blob,
+      thumbnailUrl: compositeResult.dataUrl,
+      originalPhotos: photos.map((p) => p.blob),
+      adjustments,
+      placedAccessories: accessories,
+      customText,
+    };
+    await savePrint(stored);
+    setIsSaved(true);
+    onSavedToGallery();
+    setTimeout(() => setIsSaved(false), 2500);
+  };
+
+  // Download JPEG directly
+  const handleDownloadJpeg = () => {
+    if (!compositeResult) return;
+    const now = new Date();
+    const dateStamp = now.toISOString().replace(/[-:T.]/g, '').slice(0, 14);
+    const filename = `photobooth-${dateStamp}.jpg`;
+
+    const a = document.createElement('a');
+    a.href = compositeResult.dataUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    handleSaveToGallery();
+  };
+
+  // Native Web Share
+  const handleShare = async () => {
+    if (!compositeResult) return;
+    if (navigator.share && navigator.canShare) {
+      try {
+        const file = new File([compositeResult.blob], 'photobooth.jpg', { type: 'image/jpeg' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Mon tirage Photobooth V3',
+            text: 'Tirage réalisé avec Photobooth V3',
+          });
+          setShareSuccess(true);
+          setTimeout(() => setShareSuccess(false), 2000);
+          handleSaveToGallery();
+          return;
+        }
+      } catch (err) {
+        console.warn('Native share cancelled or failed, falling back to download:', err);
+      }
+    }
+    // Fallback: download
+    handleDownloadJpeg();
+  };
+
+  return (
+    <div className="relative w-full min-h-[calc(100vh-65px)] min-h-[calc(100dvh-65px)] flex flex-col lg:flex-row bg-slate-950 text-white select-none">
+      {/* Left/Center: High-Fidelity Print Preview */}
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-900/60 overflow-y-auto">
+        <div className="relative flex items-center justify-center max-w-full max-h-[75vh]">
+          {compositeResult ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={compositeResult.dataUrl}
+              alt="Prévisualisation du tirage"
+              className="max-h-[72vh] max-w-full object-contain rounded-xl shadow-2xl border border-slate-800 transition-all"
+            />
+          ) : (
+            <div className="w-64 h-96 rounded-xl bg-slate-800/80 animate-pulse flex items-center justify-center text-slate-400">
+              Génération du tirage...
+            </div>
+          )}
+
+          {isComposing && (
+            <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-xs font-semibold text-pink-400 border border-pink-500/30 flex items-center gap-1.5 shadow-lg">
+              <RefreshCw className="w-3 h-3 animate-spin" />
+              <span>Rendu en cours</span>
+            </div>
+          )}
+        </div>
+
+        {/* Action bar below preview */}
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3 w-full max-w-md">
+          <button
+            onClick={handleDownloadJpeg}
+            className="flex-1 py-3 px-5 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-indigo-600 hover:opacity-95 text-white flex items-center justify-center gap-2 shadow-lg shadow-pink-500/25 transition active:scale-95"
+          >
+            <Download className="w-4 h-4" />
+            <span>Enregistrer JPEG</span>
+          </button>
+
+          <button
+            onClick={handleShare}
+            className="py-3 px-5 rounded-xl font-semibold bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 flex items-center justify-center gap-2 transition active:scale-95"
+          >
+            <Share2 className="w-4 h-4 text-pink-400" />
+            <span>Partager</span>
+          </button>
+
+          <button
+            onClick={onBackToCamera}
+            className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition"
+            title="Reprendre une séance"
+          >
+            <Camera className="w-5 h-5" />
+          </button>
+        </div>
+
+        {isSaved && (
+          <div className="mt-3 px-4 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs font-semibold flex items-center gap-1.5 animate-fadeIn">
+            <Check className="w-3.5 h-3.5" />
+            <span>Tirage enregistré dans la galerie locale !</span>
+          </div>
+        )}
+      </div>
+
+      {/* Right / Bottom Drawer: Comprehensive Editing Controls */}
+      <div className="w-full lg:w-[420px] bg-slate-950 border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col max-h-[50vh] lg:max-h-[calc(100vh-65px)] overflow-hidden">
+        {/* Navigation Tabs */}
+        <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2 overflow-x-auto gap-1">
+          {[
+            { id: 'themes', label: 'Thème', icon: Sparkles },
+            { id: 'formats', label: 'Format', icon: Layers },
+            { id: 'filters', label: 'Filtres', icon: Palette },
+            { id: 'adjust', label: 'Réglages', icon: Sliders },
+            { id: 'accessories', label: 'AR & Fun', icon: Smile },
+            { id: 'text', label: 'Texte', icon: Type },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
+                  isActive
+                    ? 'bg-pink-500 text-white shadow-md shadow-pink-500/20'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tab Content Panel */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+          {/* TAB 1: THEMES */}
+          {activeTab === 'themes' && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Choisir parmi les 12 thèmes
+              </h4>
+              <div className="grid grid-cols-2 gap-2.5">
+                {THEME_LIST.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => {
+                      setThemeId(t.id);
+                      setAdjustments((prev) => ({ ...prev, filterPreset: t.defaultFilter }));
+                    }}
+                    className={`p-3 rounded-xl border text-left transition ${
+                      themeId === t.id
+                        ? 'border-pink-500 bg-pink-500/15 text-white ring-1 ring-pink-500'
+                        : 'border-slate-800 bg-slate-900/60 hover:bg-slate-900 text-slate-300'
+                    }`}
+                  >
+                    <div
+                      className="w-full h-1.5 rounded-full mb-2"
+                      style={{ backgroundColor: t.backgroundColor, border: `1px solid ${t.frameBorderColor}` }}
+                    />
+                    <div className="font-bold text-xs">{t.name}</div>
+                    <div className="text-[10px] text-slate-400 truncate">{t.tagline}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: FORMATS */}
+          {activeTab === 'formats' && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Gabarits de Tirage (6 Formats)
+              </h4>
+              <div className="space-y-2">
+                {FORMAT_LIST.map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setFormatId(f.id)}
+                    className={`w-full p-3.5 rounded-xl border flex items-center justify-between text-left transition ${
+                      formatId === f.id
+                        ? 'border-pink-500 bg-pink-500/15 text-white ring-1 ring-pink-500'
+                        : 'border-slate-800 bg-slate-900/60 hover:bg-slate-900 text-slate-300'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold text-xs">{f.name}</div>
+                      <div className="text-[10px] text-slate-400">
+                        {f.canvasWidth} × {f.canvasHeight} px
+                      </div>
+                    </div>
+                    {formatId === f.id && <Check className="w-4 h-4 text-pink-400" />}
+                  </button>
+                ))}
+              </div>
+
+              {/* Retake individual photo option */}
+              <div className="pt-4 border-t border-slate-800">
+                <h5 className="text-xs font-bold text-slate-400 mb-2">Reprendre une photo individuelle</h5>
+                <div className="grid grid-cols-4 gap-2">
+                  {[0, 1, 2, 3].map((idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => onRetakePhoto(idx)}
+                      className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white flex flex-col items-center gap-1 transition"
+                    >
+                      <span>Photo {idx + 1}</span>
+                      <RefreshCw className="w-3 h-3 text-pink-400" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: FILTERS */}
+          {activeTab === 'filters' && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Filtres Photographiques (11 Presets)
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: 'natural', label: 'Naturel' },
+                  { id: 'black-and-white', label: 'Noir & Blanc' },
+                  { id: 'vintage', label: 'Vintage 70s' },
+                  { id: 'sepia', label: 'Sépia Authentique' },
+                  { id: 'film-grain', label: 'Grain Pellicule' },
+                  { id: 'warm', label: 'Tons Chauds' },
+                  { id: 'cool', label: 'Tons Froids' },
+                  { id: 'soft', label: 'Rêveur / Flou Doux' },
+                  { id: 'high-contrast', label: 'Haut Contraste' },
+                  { id: 'faded', label: 'Délavé' },
+                  { id: 'cinematic', label: 'Teal & Orange' },
+                ].map((flt) => (
+                  <button
+                    key={flt.id}
+                    onClick={() => handleSelectFilter(flt.id as FilterPresetId)}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold text-left transition ${
+                      adjustments.filterPreset === flt.id
+                        ? 'border-pink-500 bg-pink-500/20 text-pink-300'
+                        : 'border-slate-800 bg-slate-900/60 hover:bg-slate-900 text-slate-300'
+                    }`}
+                  >
+                    {flt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: ADJUSTMENTS */}
+          {activeTab === 'adjust' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  Réglages Pixels Précis
+                </h4>
+                <button
+                  onClick={() =>
+                    setAdjustments({
+                      brightness: 0,
+                      contrast: 0,
+                      saturation: 0,
+                      temperature: 0,
+                      sepia: 0,
+                      grayscale: false,
+                      vignette: 0,
+                      grain: 0,
+                      filterPreset: 'natural',
+                    })
+                  }
+                  className="text-[11px] text-pink-400 hover:text-pink-300 flex items-center gap-1"
+                >
+                  <Undo2 className="w-3 h-3" />
+                  <span>Réinitialiser</span>
+                </button>
+              </div>
+
+              {/* Sliders */}
+              {[
+                { label: 'Luminosité', key: 'brightness', min: -100, max: 100 },
+                { label: 'Contraste', key: 'contrast', min: -100, max: 100 },
+                { label: 'Saturation', key: 'saturation', min: -100, max: 100 },
+                { label: 'Température', key: 'temperature', min: -100, max: 100 },
+                { label: 'Vignettage', key: 'vignette', min: 0, max: 100 },
+                { label: 'Grain Argentique', key: 'grain', min: 0, max: 100 },
+              ].map((slider) => (
+                <div key={slider.key} className="space-y-1">
+                  <div className="flex justify-between text-xs font-medium">
+                    <span className="text-slate-300">{slider.label}</span>
+                    <span className="text-slate-500 font-mono">
+                      {adjustments[slider.key as keyof ImageAdjustments]}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={slider.min}
+                    max={slider.max}
+                    value={adjustments[slider.key as keyof ImageAdjustments] as number}
+                    onChange={(e) =>
+                      setAdjustments({
+                        ...adjustments,
+                        [slider.key]: Number(e.target.value),
+                      })
+                    }
+                    className="w-full accent-pink-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* TAB 5: AR & ACCESSORIES */}
+          {activeTab === 'accessories' && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Accessoires Virtuels (Lunettes Aviateur, etc.)
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
+                {ACCESSORIES_META.map((acc) => {
+                  const isActive = accessories.some((a) => a.accessoryId === acc.id);
+                  return (
+                    <button
+                      key={acc.id}
+                      onClick={() => toggleAccessory(acc.id)}
+                      className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition ${
+                        isActive
+                          ? 'border-pink-500 bg-pink-500/20 text-white'
+                          : 'border-slate-800 bg-slate-900/60 hover:bg-slate-900 text-slate-300'
+                      }`}
+                    >
+                      <span className="text-xl">{acc.icon}</span>
+                      <span className="text-xs font-bold truncate">{acc.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {themeId === 'color-studio' && (
+                <div className="pt-4 border-t border-slate-800 space-y-3">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Fond Color Studio
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    {['#3b82f6', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'].map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => setColorStudioBg({ type: 'solid', primaryColor: c })}
+                        className="w-7 h-7 rounded-full border border-white/20 hover:scale-110 transition"
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                    <input
+                      type="color"
+                      value={colorStudioBg.primaryColor}
+                      onChange={(e) => setColorStudioBg({ type: 'solid', primaryColor: e.target.value })}
+                      className="w-7 h-7 rounded-full cursor-pointer bg-transparent border-0"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 6: TEXT & CAPTION */}
+          {activeTab === 'text' && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Légende & Message Personnalisé
+              </h4>
+              <input
+                type="text"
+                placeholder="Ex : Dany & ses amis • Paris 2026"
+                value={customText}
+                onChange={(e) => setCustomText(e.target.value)}
+                maxLength={45}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 transition"
+              />
+              <p className="text-[11px] text-slate-500">
+                Ce texte apparaîtra imprimé avec élégance dans le pied de page du tirage.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

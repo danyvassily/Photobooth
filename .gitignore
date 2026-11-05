@@ -1,0 +1,29 @@
+# Node
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# Rust
+target/
+rust/**/target/
+
+# Vercel
+.vercel
+
+# Testing & Coverage
+coverage/
+test-results/
+playwright-report/
+
+# Env & OS
+.env*.local
+.DS_Store
+*.pem
+
+# IDEs
+.idea/
+.vscode/
+.env*
