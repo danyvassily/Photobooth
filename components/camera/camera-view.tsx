@@ -26,7 +26,7 @@ interface CameraViewProps {
   session: ReturnType<typeof usePhotoboothSession>;
   onPhotosReady: () => void;
   onOpenThemes: () => void;
-  activeAccessoryId?: AccessoryId;
+  activeAccessoryId?: AccessoryId | null;
 }
 
 const ACC_SHORT_LABEL: Record<string, string> = {
@@ -47,13 +47,14 @@ export function CameraView({
   session,
   onPhotosReady,
   onOpenThemes,
-  activeAccessoryId: initialAccessoryId = 'aviator-sunglasses',
+  activeAccessoryId: initialAccessoryId = null,
 }: CameraViewProps) {
   const { state: camState, videoRef, startStream, toggleFacingMode, capturePhoto } = useCamera();
   const [isMirror, setIsMirror] = useState(true);
   const [arTrackingActive, setArTrackingActive] = useState(false);
+  // Aucun accessoire actif au démarrage : l'utilisateur choisit explicitement.
   const [activeAccessoryId, setActiveAccessoryId] = useState<AccessoryId | null>(
-    initialAccessoryId
+    initialAccessoryId ?? null
   );
   const [showArPicker, setShowArPicker] = useState(false);
 
@@ -200,10 +201,10 @@ export function CameraView({
       )}
 
       {/* Main Video Viewport */}
-      <div className="pb-grain pb-vignette pb-viewfinder relative w-full flex-1 flex items-center justify-center overflow-hidden bg-leather-deep">
+      <div className="pb-grain pb-vignette pb-viewfinder relative w-full flex-1 overflow-hidden bg-leather-deep">
         {/* Permission Denied / Error view */}
         {camState.permission === 'denied' && (
-          <div className="p-6 text-center max-w-md mx-auto z-20">
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-6 py-4 text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
               <AlertCircle className="w-8 h-8" />
             </div>
@@ -211,7 +212,7 @@ export function CameraView({
             <p className="text-sm text-sand mb-6">
               {camState.error || 'Veuillez autoriser l’accès à la caméra pour démarrer la séance photomaton.'}
             </p>
-            <div className="flex flex-col gap-3">
+            <div className="flex w-full max-w-xs flex-col gap-3">
               <button
                 onClick={() => startStream()}
                 className="w-full py-3 px-5 rounded-xl font-semibold bg-brass hover:bg-brass text-ink transition shadow-lg shadow-brass/30"
@@ -240,7 +241,7 @@ export function CameraView({
           playsInline
           muted
           onLoadedMetadata={handleVideoLoaded}
-          className={`w-full h-full object-cover transition-transform ${
+          className={`absolute inset-0 h-full w-full object-cover transition-transform ${
             isMirror && camState.facingMode === 'user' ? '-scale-x-100' : ''
           }`}
         />
