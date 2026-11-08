@@ -279,7 +279,7 @@ export function CameraView({
                   : 'bg-espresso/50 text-paper/80 border-paper/15'
               }`}
             >
-              😎 AR{activeAccessoryId ? ' · on' : ''}
+              AR{activeAccessoryId ? ' · actif' : ''}
             </button>
             {arTrackingActive ? (
               <span className="px-2 py-1 rounded-full bg-brass/20 border border-brass/30 text-brass-light text-[10px] font-bold">
