@@ -19,7 +19,8 @@ import { AccessoryId, PlacedAccessory, ThemeId } from '@/types';
 import { detectFacesFromVideo, initFaceLandmarker } from '@/lib/face-tracking';
 import { ACCESSORIES_META, drawAccessory } from '@/lib/accessories/renderer';
 import { THEMES } from '@/lib/themes';
-import { ThemePreview } from '@/components/camera/theme-preview';
+import { ThemePreview } from './theme-preview';
+import { AccessoryIcon } from './accessory-icon';
 
 interface CameraViewProps {
   session: ReturnType<typeof usePhotoboothSession>;
@@ -27,6 +28,20 @@ interface CameraViewProps {
   onOpenThemes: () => void;
   activeAccessoryId?: AccessoryId;
 }
+
+const ACC_SHORT_LABEL: Record<string, string> = {
+  'aviator-sunglasses': 'AVIATEUR',
+  'wayfarer-sunglasses': 'WAYFARER',
+  'round-retro-sunglasses': 'RONDES',
+  'futuristic-visor': 'VISIÈRE',
+  'heart-sunglasses': 'CŒUR',
+  'cowboy-hat': 'COWBOY',
+  'party-hat': 'FÊTE',
+  crown: 'COURONNE',
+  mustache: 'MOUSTACHE',
+  'cat-ears': 'OREILLES',
+  wig: 'PERRUQUE',
+};
 
 export function CameraView({
   session,
@@ -178,32 +193,32 @@ export function CameraView({
   const currentTheme = THEMES[sessState.themeId];
 
   return (
-    <div className="relative w-full h-[calc(100vh-65px)] h-[calc(100dvh-65px)] flex flex-col items-center justify-between bg-black overflow-hidden select-none">
+    <div className="relative w-full h-[calc(100vh-65px)] h-[calc(100dvh-65px)] flex flex-col items-center justify-between bg-espresso overflow-hidden select-none">
       {/* Flash overlay */}
       {sessState.flashActive && (
-        <div className="absolute inset-0 z-50 bg-white flash-screen pointer-events-none" />
+        <div className="absolute inset-0 z-50 bg-paper flash-screen pointer-events-none" />
       )}
 
       {/* Main Video Viewport */}
-      <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden bg-slate-950">
+      <div className="pb-grain pb-vignette pb-viewfinder relative w-full flex-1 flex items-center justify-center overflow-hidden bg-leather-deep">
         {/* Permission Denied / Error view */}
         {camState.permission === 'denied' && (
           <div className="p-6 text-center max-w-md mx-auto z-20">
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
               <AlertCircle className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Accès caméra requis</h3>
-            <p className="text-sm text-slate-400 mb-6">
+            <h3 className="text-lg font-bold text-paper mb-2">Accès caméra requis</h3>
+            <p className="text-sm text-sand mb-6">
               {camState.error || 'Veuillez autoriser l’accès à la caméra pour démarrer la séance photomaton.'}
             </p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => startStream()}
-                className="w-full py-3 px-5 rounded-xl font-semibold bg-pink-600 hover:bg-pink-500 text-white transition shadow-lg shadow-pink-600/30"
+                className="w-full py-3 px-5 rounded-xl font-semibold bg-brass hover:bg-brass text-ink transition shadow-lg shadow-brass/30"
               >
                 Autoriser la caméra
               </button>
-              <label className="w-full py-2.5 px-4 rounded-xl text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer flex items-center justify-center gap-2">
+              <label className="w-full py-2.5 px-4 rounded-xl text-sm font-medium bg-leather-soft hover:bg-leather-soft text-paper border border-line cursor-pointer flex items-center justify-center gap-2">
                 <Upload className="w-4 h-4" />
                 <span>Importer des photos</span>
                 <input
@@ -238,14 +253,14 @@ export function CameraView({
 
         {/* Live theme preview (before shooting) */}
         <div className="absolute top-16 right-3 z-20 flex flex-col items-end gap-1">
-          <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[9px] font-bold uppercase tracking-wider text-white/80">
+          <span className="px-2 py-0.5 rounded-full bg-espresso/60 backdrop-blur-md border border-paper/10 text-[9px] font-bold uppercase tracking-wider text-paper/80">
             Aperçu
           </span>
           <button
             onClick={onOpenThemes}
             title="Modifier le thème"
             aria-label="Aperçu du tirage — modifier le thème"
-            className="rounded-lg overflow-hidden border border-white/20 shadow-lg bg-black/40 p-1 backdrop-blur-md active:scale-95 transition"
+            className="rounded-lg overflow-hidden border border-paper/20 shadow-lg bg-espresso/40 p-1 backdrop-blur-md active:scale-95 transition"
           >
             <ThemePreview themeId={sessState.themeId} formatId={sessState.formatId} width={66} />
           </button>
@@ -259,25 +274,25 @@ export function CameraView({
               aria-label="Accessoires AR"
               className={`px-2.5 py-1.5 rounded-full text-[11px] font-bold border backdrop-blur-md transition ${
                 activeAccessoryId
-                  ? 'bg-pink-500/90 text-white border-pink-300/40'
-                  : 'bg-black/50 text-white/80 border-white/15'
+                  ? 'bg-brass/90 text-ink border-brass/40'
+                  : 'bg-espresso/50 text-paper/80 border-paper/15'
               }`}
             >
               😎 AR{activeAccessoryId ? ' · on' : ''}
             </button>
             {arTrackingActive ? (
-              <span className="px-2 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-bold">
+              <span className="px-2 py-1 rounded-full bg-brass/20 border border-brass/30 text-brass-light text-[10px] font-bold">
                 suivi visage OK
               </span>
             ) : (
-              <span className="px-2 py-1 rounded-full bg-black/50 border border-white/10 text-white/50 text-[10px] font-bold">
+              <span className="px-2 py-1 rounded-full bg-espresso/50 border border-paper/10 text-paper/50 text-[10px] font-bold">
                 suivi indisponible
               </span>
             )}
             {activeAccessoryId && (
               <button
                 onClick={() => setActiveAccessoryId(null)}
-                className="px-2 py-1 rounded-full bg-black/50 border border-white/15 text-white/70 text-[10px] font-bold"
+                className="px-2 py-1 rounded-full bg-espresso/50 border border-paper/15 text-paper/70 text-[10px] font-bold"
               >
                 retirer
               </button>
@@ -285,16 +300,19 @@ export function CameraView({
           </div>
 
           {showArPicker && (
-            <div className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
+            <div className="grid grid-cols-4 gap-1.5 rounded-xl bg-espresso/60 p-2 backdrop-blur-md border border-paper/10">
               <button
                 onClick={() => setActiveAccessoryId(null)}
-                className={`shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border backdrop-blur-md transition ${
+                title="Aucun accessoire"
+                aria-label="Aucun accessoire"
+                className={`flex flex-col items-center gap-1 rounded-lg border px-1 py-1.5 transition ${
                   activeAccessoryId === null
-                    ? 'bg-white text-slate-900 border-white'
-                    : 'bg-black/50 text-white/70 border-white/15'
+                    ? 'bg-brass text-ink border-brass/60'
+                    : 'bg-leather/70 text-paper/75 border-paper/10 hover:text-paper'
                 }`}
               >
-                Aucun
+                <AccessoryIcon id="none" className="h-4 w-4" />
+                <span className="pb-label text-[9px] leading-none">Aucun</span>
               </button>
               {ACCESSORIES_META.map((acc) => (
                 <button
@@ -302,14 +320,16 @@ export function CameraView({
                   onClick={() => setActiveAccessoryId(acc.id)}
                   title={acc.name}
                   aria-label={acc.name}
-                  className={`shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border backdrop-blur-md transition ${
+                  className={`flex flex-col items-center gap-1 rounded-lg border px-1 py-1.5 transition ${
                     activeAccessoryId === acc.id
-                      ? 'bg-pink-500 text-white border-pink-300/50'
-                      : 'bg-black/50 text-white/75 border-white/15'
+                      ? 'bg-brass text-ink border-brass/60'
+                      : 'bg-leather/70 text-paper/75 border-paper/10 hover:text-paper'
                   }`}
                 >
-                  <span className="mr-1">{acc.icon}</span>
-                  {acc.name.split(' ')[0]}
+                  <AccessoryIcon id={acc.id} className="h-4 w-4" />
+                  <span className="pb-label text-[9px] leading-none truncate w-full text-center">
+                    {ACC_SHORT_LABEL[acc.id] ?? acc.name.split(' ')[0]}
+                  </span>
                 </button>
               ))}
             </div>
@@ -318,12 +338,12 @@ export function CameraView({
 
         {/* Active Countdown Big Display */}
         {sessState.step === 'countdown' && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-[2px] transition-all">
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-espresso/40 backdrop-blur-[2px] transition-all">
             <div className="flex flex-col items-center">
-              <div className="text-8xl md:text-9xl font-black text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] animate-pulse-fast">
+              <div className="text-8xl md:text-9xl font-black text-paper drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] animate-pulse-fast">
                 {sessState.countdownSeconds}
               </div>
-              <div className="mt-4 px-4 py-1.5 rounded-full bg-pink-500/80 text-white font-bold text-sm tracking-wider uppercase">
+              <div className="mt-4 px-4 py-1.5 rounded-full bg-brass/80 text-ink font-bold text-sm tracking-wider uppercase">
                 Photo {sessState.photos.length + 1} / 4
               </div>
             </div>
@@ -333,8 +353,8 @@ export function CameraView({
         {/* Top Control Bar over video */}
         <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between">
           {/* Progress pill 1/4 to 4/4 */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-espresso/60 backdrop-blur-md border border-paper/10 text-paper text-xs font-semibold">
+            <span className="w-2 h-2 rounded-full bg-brass animate-pulse" />
             <span>
               {sessState.step === 'idle'
                 ? 'Prêt pour 4 prises'
@@ -349,8 +369,8 @@ export function CameraView({
               title="Mode Miroir"
               className={`p-2.5 rounded-full backdrop-blur-md border transition ${
                 isMirror
-                  ? 'bg-white/20 text-white border-white/30'
-                  : 'bg-black/40 text-white/70 border-white/10 hover:text-white'
+                  ? 'bg-paper/20 text-paper border-paper/30'
+                  : 'bg-espresso/40 text-paper/70 border-paper/10 hover:text-paper'
               }`}
             >
               <FlipHorizontal className="w-4 h-4" />
@@ -360,7 +380,7 @@ export function CameraView({
             <button
               onClick={toggleFacingMode}
               title="Changer de caméra"
-              className="p-2.5 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md border border-white/10 transition"
+              className="p-2.5 rounded-full bg-espresso/40 hover:bg-espresso/60 text-paper backdrop-blur-md border border-paper/10 transition"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -377,8 +397,8 @@ export function CameraView({
                   key={idx}
                   className={`w-12 h-16 rounded-lg overflow-hidden border-2 transition-all ${
                     photo
-                      ? 'border-pink-500 bg-slate-800 shadow-md scale-100'
-                      : 'border-white/20 bg-black/40 backdrop-blur-sm'
+                      ? 'border-brass bg-leather-soft shadow-md scale-100'
+                      : 'border-paper/20 bg-espresso/40 backdrop-blur-sm'
                   }`}
                 >
                   {photo ? (
@@ -389,7 +409,7 @@ export function CameraView({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[10px] text-white/50 font-bold">
+                    <div className="w-full h-full flex items-center justify-center text-[10px] text-paper/50 font-bold">
                       {idx + 1}
                     </div>
                   )}
@@ -401,20 +421,20 @@ export function CameraView({
       </div>
 
       {/* Bottom Action Controls */}
-      <div className="w-full bg-slate-950/90 backdrop-blur-md border-t border-slate-900 px-6 py-4 pb-safe flex flex-col gap-3">
+      <div className="w-full bg-leather-deep/90 backdrop-blur-md border-t border-line px-6 py-4 pb-safe flex flex-col gap-3">
         {sessState.step === 'idle' ? (
           <div className="flex flex-col-reverse sm:flex-row items-center justify-between max-w-xl mx-auto w-full gap-2.5">
             {/* Timer duration + theme picker (mobile-friendly row) */}
             <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2">
-              <div className="flex items-center rounded-xl bg-slate-900 p-1 border border-slate-800 shrink-0">
+              <div className="flex items-center rounded-xl bg-leather p-1 border border-line shrink-0">
                 {([3, 5, 10] as const).map((dur) => (
                   <button
                     key={dur}
                     onClick={() => session.setTimerDuration(dur)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                       sessState.timerDuration === dur
-                        ? 'bg-pink-500 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-white'
+                        ? 'bg-brass text-ink shadow-sm'
+                        : 'text-sand hover:text-paper'
                     }`}
                   >
                     {dur}s
@@ -426,9 +446,9 @@ export function CameraView({
                 onClick={onOpenThemes}
                 aria-label="Choisir un thème"
                 title="Choisir un thème"
-                className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition shrink-0"
+                className="px-3 py-2 rounded-xl bg-leather hover:bg-leather-soft border border-line text-paper hover:text-paper text-xs font-semibold flex items-center gap-1.5 transition shrink-0"
               >
-                <Sparkles className="w-4 h-4 text-pink-400" />
+                <Sparkles className="w-4 h-4 text-brass" />
                 <span>Thème</span>
               </button>
             </div>
@@ -436,10 +456,10 @@ export function CameraView({
             {/* Giant Main Start Button — full width on phones, no clipping */}
             <button
               onClick={() => session.start4PhotoSession()}
-              className="relative group w-full sm:w-auto justify-center px-5 sm:px-8 py-3.5 rounded-full bg-gradient-to-r from-pink-500 via-rose-500 to-indigo-600 text-white font-extrabold text-sm sm:text-base tracking-wide shadow-xl shadow-pink-500/30 hover:shadow-pink-500/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2.5"
+              className="relative group w-full sm:w-auto justify-center px-5 sm:px-8 py-3.5 rounded-full bg-gradient-to-r from-brass-light via-brass to-brass-dark text-ink font-extrabold text-sm sm:text-base tracking-wide shadow-xl shadow-brass/30 hover:shadow-brass/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2.5"
             >
               <Camera className="w-5 h-5 shrink-0" />
-              <span className="whitespace-nowrap">Démarrer (4 photos)</span>
+              <span className="pb-label whitespace-nowrap text-[13px]">Démarrer (4 photos)</span>
             </button>
           </div>
         ) : (
@@ -447,16 +467,16 @@ export function CameraView({
           <div className="flex items-center justify-center gap-4 max-w-md mx-auto w-full">
             <button
               onClick={sessState.isPaused ? session.resumeSession : session.pauseSession}
-              className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white font-semibold text-sm flex items-center gap-2 transition"
+              className="px-5 py-2.5 rounded-xl bg-leather hover:bg-leather-soft border border-line text-paper font-semibold text-sm flex items-center gap-2 transition"
             >
               {sessState.isPaused ? (
                 <>
-                  <Play className="w-4 h-4 text-emerald-400 fill-emerald-400" />
+                  <Play className="w-4 h-4 text-brass-light fill-emerald-400" />
                   <span>Reprendre</span>
                 </>
               ) : (
                 <>
-                  <Pause className="w-4 h-4 text-amber-400" />
+                  <Pause className="w-4 h-4 text-brass-light" />
                   <span>Pause</span>
                 </>
               )}

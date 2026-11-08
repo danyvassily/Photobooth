@@ -33,22 +33,22 @@ export function BenchmarkModal({ isOpen, onClose }: BenchmarkModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-lg bg-slate-950 border border-slate-800 rounded-2xl flex flex-col shadow-2xl overflow-hidden pb-safe">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-espresso/80 backdrop-blur-md animate-fadeIn">
+      <div className="relative w-full max-w-lg bg-leather-deep border border-line rounded-2xl flex flex-col shadow-2xl overflow-hidden pb-safe">
         {/* Header */}
-        <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800">
+        <div className="px-6 py-4 flex items-center justify-between border-b border-line">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400">
+            <div className="w-8 h-8 rounded-xl bg-brass/10 border border-brass/20 flex items-center justify-center text-brass">
               <Cpu className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Benchmarks Rust/WASM vs JavaScript</h3>
-              <p className="text-[11px] text-slate-400">Mesures de performance réelles sur cet appareil</p>
+              <h3 className="text-base font-bold text-paper">Benchmarks Rust/WASM vs JavaScript</h3>
+              <p className="text-[11px] text-sand">Mesures de performance réelles sur cet appareil</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition"
+            className="p-1.5 rounded-full hover:bg-leather-soft text-sand hover:text-paper transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -59,14 +59,14 @@ export function BenchmarkModal({ isOpen, onClose }: BenchmarkModalProps) {
           {/* Status Badge */}
           <div className={`p-4 rounded-xl border flex items-center justify-between ${
             wasmReady
-              ? 'bg-emerald-950/30 border-emerald-800/40 text-emerald-300'
-              : 'bg-amber-950/30 border-amber-800/40 text-amber-300'
+              ? 'bg-espresso/30 border-brass-dark/40 text-brass-light'
+              : 'bg-espresso/30 border-brass-dark/40 text-brass-light'
           }`}>
             <div className="flex items-center gap-3">
               {wasmReady ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                <CheckCircle2 className="w-5 h-5 text-brass-light" />
               ) : (
-                <AlertCircle className="w-5 h-5 text-amber-400" />
+                <AlertCircle className="w-5 h-5 text-brass-light" />
               )}
               <div>
                 <div className="font-bold text-xs">
@@ -84,7 +84,7 @@ export function BenchmarkModal({ isOpen, onClose }: BenchmarkModalProps) {
           {/* Results Table */}
           {results.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-sand uppercase tracking-wider">
                 Résultats mesurés (5 passes)
               </h4>
               <div className="space-y-2">
@@ -93,20 +93,20 @@ export function BenchmarkModal({ isOpen, onClose }: BenchmarkModalProps) {
                   return (
                     <div
                       key={i}
-                      className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs"
+                      className="p-3 rounded-xl bg-leather border border-line flex items-center justify-between text-xs"
                     >
                       <div>
-                        <div className="font-bold text-white">{label}</div>
-                        <div className="text-[10px] text-slate-500">
+                        <div className="font-bold text-paper">{label}</div>
+                        <div className="text-[10px] text-sand">
                           {r.width} × {r.height} px ({((r.width * r.height) / 1e6).toFixed(1)} MP)
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-slate-300">
-                          JS : <strong className="text-white font-mono">{r.jsTimeMs.toFixed(1)} ms</strong>
+                        <div className="text-paper">
+                          JS : <strong className="text-paper font-mono">{r.jsTimeMs.toFixed(1)} ms</strong>
                         </div>
                         {r.wasmAvailable && (
-                          <div className="text-emerald-400">
+                          <div className="text-brass-light">
                             WASM : <strong className="font-mono">{r.wasmTimeMs.toFixed(1)} ms</strong> ({r.speedup.toFixed(1)}x)
                           </div>
                         )}
@@ -121,7 +121,7 @@ export function BenchmarkModal({ isOpen, onClose }: BenchmarkModalProps) {
           <button
             onClick={handleRunBenchmarks}
             disabled={isRunning}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-indigo-600 hover:opacity-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-pink-500/20 transition active:scale-95 disabled:opacity-50"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-brass-light to-brass-dark hover:opacity-95 text-ink font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-brass/20 transition active:scale-95 disabled:opacity-50"
           >
             {isRunning ? (
               <>
