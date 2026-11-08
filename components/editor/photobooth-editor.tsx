@@ -267,25 +267,25 @@ export function PhotoboothEditor({
   };
 
   return (
-    <div className="relative w-full min-h-[calc(100vh-65px)] min-h-[calc(100dvh-65px)] flex flex-col lg:flex-row bg-slate-950 text-white select-none">
+    <div className="relative w-full min-h-[calc(100vh-65px)] min-h-[calc(100dvh-65px)] flex flex-col lg:flex-row bg-leather-deep text-paper select-none">
       {/* Left/Center: High-Fidelity Print Preview */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-900/60 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-leather/60 overflow-y-auto">
         <div className="relative flex items-center justify-center max-w-full max-h-[75vh]">
           {compositeResult ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={compositeResult.dataUrl}
               alt="Prévisualisation du tirage"
-              className="max-h-[72vh] max-w-full object-contain rounded-xl shadow-2xl border border-slate-800 transition-all"
+              className="max-h-[72vh] max-w-full object-contain rounded-xl shadow-2xl border border-line transition-all"
             />
           ) : (
-            <div className="w-64 h-96 rounded-xl bg-slate-800/80 animate-pulse flex items-center justify-center text-slate-400">
+            <div className="w-64 h-96 rounded-xl bg-leather-soft/80 animate-pulse flex items-center justify-center text-sand">
               Génération du tirage...
             </div>
           )}
 
           {isComposing && (
-            <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-xs font-semibold text-pink-400 border border-pink-500/30 flex items-center gap-1.5 shadow-lg">
+            <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-espresso/70 backdrop-blur-md text-xs font-semibold text-brass border border-brass/30 flex items-center gap-1.5 shadow-lg">
               <RefreshCw className="w-3 h-3 animate-spin" />
               <span>Rendu en cours</span>
             </div>
@@ -296,7 +296,7 @@ export function PhotoboothEditor({
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3 w-full max-w-md">
           <button
             onClick={() => void handleDownloadJpeg()}
-            className="flex-1 py-3 px-5 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-indigo-600 hover:opacity-95 text-white flex items-center justify-center gap-2 shadow-lg shadow-pink-500/25 transition active:scale-95"
+            className="flex-1 py-3 px-5 rounded-xl font-bold bg-gradient-to-r from-brass-light to-brass-dark hover:opacity-95 text-ink flex items-center justify-center gap-2 shadow-lg shadow-brass/25 transition active:scale-95"
           >
             <Download className="w-4 h-4" />
             <span>Enregistrer JPEG</span>
@@ -304,15 +304,15 @@ export function PhotoboothEditor({
 
           <button
             onClick={handleShare}
-            className="py-3 px-5 rounded-xl font-semibold bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 flex items-center justify-center gap-2 transition active:scale-95"
+            className="py-3 px-5 rounded-xl font-semibold bg-leather-soft hover:bg-leather-soft text-paper border border-line flex items-center justify-center gap-2 transition active:scale-95"
           >
-            <Share2 className="w-4 h-4 text-pink-400" />
+            <Share2 className="w-4 h-4 text-brass" />
             <span>Partager</span>
           </button>
 
           <button
             onClick={onBackToCamera}
-            className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition"
+            className="p-3 rounded-xl bg-leather-soft hover:bg-leather-soft text-paper hover:text-paper border border-line transition"
             title="Reprendre une séance"
           >
             <Camera className="w-5 h-5" />
@@ -320,23 +320,23 @@ export function PhotoboothEditor({
         </div>
 
         {isSaved && (
-          <div className="mt-3 px-4 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs font-semibold flex items-center gap-1.5 animate-fadeIn">
+          <div className="mt-3 px-4 py-1.5 rounded-full bg-espresso/80 border border-brass-dark text-brass-light text-xs font-semibold flex items-center gap-1.5 animate-fadeIn">
             <Check className="w-3.5 h-3.5" />
             <span>Tirage enregistré dans la galerie locale !</span>
           </div>
         )}
 
         {saveError && (
-          <div className="mt-3 px-4 py-1.5 rounded-full bg-rose-950/80 border border-rose-800 text-rose-300 text-xs font-semibold">
+          <div className="mt-3 px-4 py-1.5 rounded-full bg-espresso/80 border border-brass-dark text-brass text-xs font-semibold">
             {saveError}
           </div>
         )}
       </div>
 
       {/* Right / Bottom Drawer: Comprehensive Editing Controls */}
-      <div className="w-full lg:w-[420px] bg-slate-950 border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col max-h-[50vh] lg:max-h-[calc(100vh-65px)] overflow-hidden">
+      <div className="w-full lg:w-[420px] bg-leather-deep border-t lg:border-t-0 lg:border-l border-line flex flex-col max-h-[50vh] lg:max-h-[calc(100vh-65px)] overflow-hidden">
         {/* Navigation Tabs */}
-        <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2 overflow-x-auto gap-1">
+        <div className="flex items-center justify-between border-b border-line px-3 py-2 overflow-x-auto gap-1">
           {[
             { id: 'themes', label: 'Thème', icon: Sparkles },
             { id: 'formats', label: 'Format', icon: Layers },
@@ -353,8 +353,8 @@ export function PhotoboothEditor({
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
                   isActive
-                    ? 'bg-pink-500 text-white shadow-md shadow-pink-500/20'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                    ? 'bg-brass text-ink shadow-md shadow-brass/20'
+                    : 'text-sand hover:text-paper hover:bg-leather'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -369,7 +369,7 @@ export function PhotoboothEditor({
           {/* TAB 1: THEMES */}
           {activeTab === 'themes' && (
             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-sand uppercase tracking-wider">
                 Choisir parmi les 12 thèmes
               </h4>
               <div className="grid grid-cols-2 gap-2.5">
@@ -382,8 +382,8 @@ export function PhotoboothEditor({
                     }}
                     className={`p-3 rounded-xl border text-left transition ${
                       themeId === t.id
-                        ? 'border-pink-500 bg-pink-500/15 text-white ring-1 ring-pink-500'
-                        : 'border-slate-800 bg-slate-900/60 hover:bg-slate-900 text-slate-300'
+                        ? 'border-brass bg-brass/15 text-ink ring-1 ring-brass'
+                        : 'border-line bg-leather/60 hover:bg-leather text-paper'
                     }`}
                   >
                     <div
@@ -391,7 +391,7 @@ export function PhotoboothEditor({
                       style={{ backgroundColor: t.backgroundColor, border: `1px solid ${t.frameBorderColor}` }}
                     />
                     <div className="font-bold text-xs">{t.name}</div>
-                    <div className="text-[10px] text-slate-400 truncate">{t.tagline}</div>
+                    <div className="text-[10px] text-sand truncate">{t.tagline}</div>
                   </button>
                 ))}
               </div>
@@ -401,7 +401,7 @@ export function PhotoboothEditor({
           {/* TAB 2: FORMATS */}
           {activeTab === 'formats' && (
             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-sand uppercase tracking-wider">
                 Gabarits de Tirage (6 Formats)
               </h4>
               <div className="space-y-2">
@@ -411,33 +411,33 @@ export function PhotoboothEditor({
                     onClick={() => setFormatId(f.id)}
                     className={`w-full p-3.5 rounded-xl border flex items-center justify-between text-left transition ${
                       formatId === f.id
-                        ? 'border-pink-500 bg-pink-500/15 text-white ring-1 ring-pink-500'
-                        : 'border-slate-800 bg-slate-900/60 hover:bg-slate-900 text-slate-300'
+                        ? 'border-brass bg-brass/15 text-ink ring-1 ring-brass'
+                        : 'border-line bg-leather/60 hover:bg-leather text-paper'
                     }`}
                   >
                     <div>
                       <div className="font-bold text-xs">{f.name}</div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-[10px] text-sand">
                         {f.canvasWidth} × {f.canvasHeight} px
                       </div>
                     </div>
-                    {formatId === f.id && <Check className="w-4 h-4 text-pink-400" />}
+                    {formatId === f.id && <Check className="w-4 h-4 text-brass" />}
                   </button>
                 ))}
               </div>
 
               {/* Retake individual photo option */}
-              <div className="pt-4 border-t border-slate-800">
-                <h5 className="text-xs font-bold text-slate-400 mb-2">Reprendre une photo individuelle</h5>
+              <div className="pt-4 border-t border-line">
+                <h5 className="text-xs font-bold text-sand mb-2">Reprendre une photo individuelle</h5>
                 <div className="grid grid-cols-4 gap-2">
                   {[0, 1, 2, 3].map((idx) => (
                     <button
                       key={idx}
                       onClick={() => onRetakePhoto(idx)}
-                      className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white flex flex-col items-center gap-1 transition"
+                      className="p-2 rounded-lg bg-leather hover:bg-leather-soft border border-line text-xs font-medium text-paper hover:text-paper flex flex-col items-center gap-1 transition"
                     >
                       <span>Photo {idx + 1}</span>
-                      <RefreshCw className="w-3 h-3 text-pink-400" />
+                      <RefreshCw className="w-3 h-3 text-brass" />
                     </button>
                   ))}
                 </div>
@@ -448,7 +448,7 @@ export function PhotoboothEditor({
           {/* TAB 3: FILTERS */}
           {activeTab === 'filters' && (
             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-sand uppercase tracking-wider">
                 Filtres Photographiques (11 Presets)
               </h4>
               <div className="grid grid-cols-2 gap-2">
@@ -470,8 +470,8 @@ export function PhotoboothEditor({
                     onClick={() => handleSelectFilter(flt.id as FilterPresetId)}
                     className={`py-2.5 px-3 rounded-xl border text-xs font-bold text-left transition ${
                       adjustments.filterPreset === flt.id
-                        ? 'border-pink-500 bg-pink-500/20 text-pink-300'
-                        : 'border-slate-800 bg-slate-900/60 hover:bg-slate-900 text-slate-300'
+                        ? 'border-brass bg-brass/20 text-brass'
+                        : 'border-line bg-leather/60 hover:bg-leather text-paper'
                     }`}
                   >
                     {flt.label}
@@ -485,7 +485,7 @@ export function PhotoboothEditor({
           {activeTab === 'adjust' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <h4 className="text-xs font-bold text-sand uppercase tracking-wider">
                   Réglages Pixels Précis
                 </h4>
                 <button
@@ -502,7 +502,7 @@ export function PhotoboothEditor({
                       filterPreset: 'natural',
                     })
                   }
-                  className="text-[11px] text-pink-400 hover:text-pink-300 flex items-center gap-1"
+                  className="text-[11px] text-brass hover:text-brass flex items-center gap-1"
                 >
                   <Undo2 className="w-3 h-3" />
                   <span>Réinitialiser</span>
@@ -520,8 +520,8 @@ export function PhotoboothEditor({
               ].map((slider) => (
                 <div key={slider.key} className="space-y-1">
                   <div className="flex justify-between text-xs font-medium">
-                    <span className="text-slate-300">{slider.label}</span>
-                    <span className="text-slate-500 font-mono">
+                    <span className="text-paper">{slider.label}</span>
+                    <span className="text-sand font-mono">
                       {adjustments[slider.key as keyof ImageAdjustments]}
                     </span>
                   </div>
@@ -536,7 +536,7 @@ export function PhotoboothEditor({
                         [slider.key]: Number(e.target.value),
                       })
                     }
-                    className="w-full accent-pink-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+                    className="pb-slider w-full accent-brass cursor-pointer h-2 rounded-full bg-espresso"
                   />
                 </div>
               ))}
@@ -546,7 +546,7 @@ export function PhotoboothEditor({
           {/* TAB 5: AR & ACCESSORIES */}
           {activeTab === 'accessories' && (
             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-sand uppercase tracking-wider">
                 Accessoires Virtuels (Lunettes Aviateur, etc.)
               </h4>
               <div className="grid grid-cols-2 gap-2">
@@ -558,8 +558,8 @@ export function PhotoboothEditor({
                       onClick={() => toggleAccessory(acc.id)}
                       className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition ${
                         isActive
-                          ? 'border-pink-500 bg-pink-500/20 text-white'
-                          : 'border-slate-800 bg-slate-900/60 hover:bg-slate-900 text-slate-300'
+                          ? 'border-brass bg-brass/20 text-ink'
+                          : 'border-line bg-leather/60 hover:bg-leather text-paper'
                       }`}
                     >
                       <span className="text-xl">{acc.icon}</span>
@@ -570,8 +570,8 @@ export function PhotoboothEditor({
               </div>
 
               {themeId === 'color-studio' && (
-                <div className="pt-4 border-t border-slate-800 space-y-3">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <div className="pt-4 border-t border-line space-y-3">
+                  <h4 className="text-xs font-bold text-sand uppercase tracking-wider">
                     Fond Color Studio
                   </h4>
                   <div className="flex items-center gap-2">
@@ -579,7 +579,7 @@ export function PhotoboothEditor({
                       <button
                         key={c}
                         onClick={() => setColorStudioBg({ type: 'solid', primaryColor: c })}
-                        className="w-7 h-7 rounded-full border border-white/20 hover:scale-110 transition"
+                        className="w-7 h-7 rounded-full border border-paper/20 hover:scale-110 transition"
                         style={{ backgroundColor: c }}
                       />
                     ))}
@@ -592,7 +592,7 @@ export function PhotoboothEditor({
                   </div>
 
                   <div>
-                    <div className="text-[11px] font-semibold text-slate-400 mb-1.5">
+                    <div className="text-[11px] font-semibold text-sand mb-1.5">
                       Couleur par photo (segmentation locale)
                     </div>
                     <div className="flex items-center gap-2">
@@ -610,7 +610,7 @@ export function PhotoboothEditor({
                               next[index] = e.target.value;
                               setColorStudioBg({ ...colorStudioBg, perPhotoColors: next });
                             }}
-                            className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border border-slate-700"
+                            className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border border-line"
                           />
                         );
                       })}
@@ -624,7 +624,7 @@ export function PhotoboothEditor({
           {/* TAB 6: TEXT & CAPTION */}
           {activeTab === 'text' && (
             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-sand uppercase tracking-wider">
                 Légende & Message Personnalisé
               </h4>
               <input
@@ -633,9 +633,9 @@ export function PhotoboothEditor({
                 value={customText}
                 onChange={(e) => setCustomText(e.target.value)}
                 maxLength={45}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 transition"
+                className="w-full px-4 py-2.5 rounded-xl bg-leather border border-line text-sm text-paper placeholder-sand focus:outline-none focus:border-brass transition"
               />
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-sand">
                 Ce texte apparaîtra imprimé avec élégance dans le pied de page du tirage.
               </p>
             </div>

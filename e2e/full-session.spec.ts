@@ -83,7 +83,7 @@ test.describe('Photobooth V3 — full session', () => {
       // Editor reopened on the stored theme (active card highlighted)
       await page.getByRole('button', { name: 'Thème', exact: true }).click();
       await expect(
-        page.locator('button.border-pink-500:has-text("Classic Photobooth")')
+        page.locator('button.border-brass:has-text("Classic Photobooth")')
       ).toBeVisible();
       // …and the print preview was recomposed from the restored originals
       await expect(page.locator('img[alt="Prévisualisation du tirage"]')).toBeVisible();

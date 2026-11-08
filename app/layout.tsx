@@ -32,7 +32,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className="dark">
-      <body className="antialiased selection:bg-pink-500 selection:text-white">
+      <body className="antialiased selection:bg-brass selection:text-ink">
         {children}
         <script
           dangerouslySetInnerHTML={{

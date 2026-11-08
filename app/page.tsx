@@ -8,6 +8,7 @@ import { PhotoboothEditor } from '@/components/editor/photobooth-editor';
 import { ThemeSelector } from '@/components/themes/theme-selector';
 import { GalleryModal } from '@/components/gallery/gallery-modal';
 import { KioskModal } from '@/components/kiosk/kiosk-modal';
+import { KioskAttract } from '@/components/kiosk/kiosk-attract';
 import { BenchmarkModal } from '@/components/ui/benchmark-modal';
 import { EventKioskSettings, StoredPrint } from '@/types';
 import { getAllPrints } from '@/lib/storage';
@@ -47,7 +48,7 @@ export default function PhotoboothPage() {
     enabled: false,
     eventName: '',
     eventDate: '',
-    accentColor: '#ec4899',
+    accentColor: '#C9A227',
     idleTimeoutSeconds: 60,
     allowedThemes: ['classic', 'vintage', 'korean-life4cuts', 'party', 'fun-ar'],
   });
@@ -113,8 +114,13 @@ export default function PhotoboothPage() {
   const resetSessionRef = useRef(session.resetToNewSession);
   resetSessionRef.current = session.resetToNewSession;
 
+  // Lancement de la borne : on affiche l'écran attract, la séance part au premier tap.
   const handleStartKiosk = () => {
     setIsKioskActive(true);
+    session.resetToNewSession();
+  };
+
+  const handleKioskShoot = () => {
     session.start4PhotoSession();
   };
 
@@ -152,7 +158,7 @@ export default function PhotoboothPage() {
   const isEditing = session.state.step === 'reviewing' || session.state.step === 'editing';
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white flex flex-col justify-between overflow-x-hidden font-sans">
+    <main className="pb-grain relative min-h-screen bg-leather-deep text-paper flex flex-col justify-between overflow-x-hidden font-sans">
       {/* Top Header / Nav */}
       <NavigationBar
         currentThemeId={session.state.themeId}
@@ -165,7 +171,7 @@ export default function PhotoboothPage() {
 
       {isKioskActive && (
         <div
-          className="w-full px-4 py-2 text-center text-xs sm:text-sm font-semibold flex items-center justify-center gap-3"
+          className="pb-label w-full px-4 py-2 text-center text-[10px] font-semibold flex items-center justify-center gap-3 text-ink"
           style={{ backgroundColor: kioskSettings.accentColor }}
         >
           <span>
@@ -184,7 +190,16 @@ export default function PhotoboothPage() {
 
       {/* Main Interactive Body */}
       <div className="flex-1 w-full flex flex-col">
-        {!isEditing ? (
+        {isKioskActive && !isEditing && session.state.step === 'idle' ? (
+          <KioskAttract
+            eventName={kioskSettings.eventName}
+            eventDate={kioskSettings.eventDate}
+            idleTimeoutSeconds={kioskSettings.idleTimeoutSeconds}
+            onStart={handleKioskShoot}
+            onExit={exitKiosk}
+            onOpenThemes={() => setIsThemeSelectorOpen(true)}
+          />
+        ) : !isEditing ? (
           <CameraView
             session={session}
             onPhotosReady={session.goToEditor}
