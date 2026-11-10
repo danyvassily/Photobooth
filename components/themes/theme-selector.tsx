@@ -30,6 +30,10 @@ export function ThemeSelector({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-espresso/70 backdrop-blur-sm transition-all animate-fadeIn">
       <div className="pb-grain relative w-full max-w-2xl max-h-[85vh] flex flex-col bg-leather border border-line rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden pb-safe">
+        {/* Poignée de feuille (geste iOS) */}
+        <div className="flex justify-center pt-2.5 pb-1" aria-hidden>
+          <span className="h-1.5 w-12 rounded-full bg-line" />
+        </div>
         {/* Header */}
         <div className="px-6 py-4 flex items-center justify-between border-b border-line">
           <div className="flex items-center gap-2">
@@ -61,9 +65,9 @@ export function ThemeSelector({
                     : 'border-line bg-leather-soft/50 hover:bg-leather-soft hover:border-line'
                 }`}
               >
-                {/* Theme Color Bar Preview */}
+                {/* Tranche de pellicule du film */}
                 <div
-                  className="w-full h-3 rounded-sm mb-3 shadow-sm"
+                  className="w-full h-1.5 rounded-full mb-3"
                   style={{ backgroundColor: theme.backgroundColor, border: `1px solid ${theme.frameBorderColor}` }}
                 />
 
@@ -89,6 +93,16 @@ export function ThemeSelector({
               </button>
             );
           })}
+        </div>
+
+        {/* Pied de feuille : une seule action secondaire, 44 px */}
+        <div className="border-t border-line px-4 pb-safe pt-3">
+          <button
+            onClick={onClose}
+            className="w-full min-h-[44px] rounded-xl border border-line text-[15px] font-medium text-sand transition hover:text-paper active:scale-[0.98]"
+          >
+            Annuler
+          </button>
         </div>
       </div>
     </div>
