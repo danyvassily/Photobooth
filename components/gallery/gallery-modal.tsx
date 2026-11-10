@@ -173,7 +173,10 @@ export function GalleryModal({
                     onClick={() => setSelectedPrint(print)}
                     className="group relative rounded-xl overflow-hidden border border-line bg-leather cursor-pointer hover:border-brass/50 hover:shadow-xl transition-all"
                   >
-                    <div className="aspect-[1/2] w-full overflow-hidden bg-espresso flex items-center justify-center">
+                    <div className="relative aspect-[1/2] w-full overflow-hidden bg-espresso flex items-center justify-center">
+                      <span className="absolute bottom-2 left-2 z-10 rounded-full bg-espresso/80 px-2 py-1 text-[11px] font-medium text-paper backdrop-blur-sm">
+                        {date}
+                      </span>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={print.thumbnailUrl}
@@ -188,7 +191,7 @@ export function GalleryModal({
                         <div className="font-bold text-paper capitalize truncate max-w-[100px]">
                           {print.themeId}
                         </div>
-                        <div className="text-[10px] text-sand">{date}</div>
+                        <div className="text-[10px] text-sand">{print.formatId.replace('-', ' ')}</div>
                       </div>
 
                       <div className="flex items-center gap-1 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity">

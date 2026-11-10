@@ -336,7 +336,7 @@ export function PhotoboothEditor({
       {/* Right / Bottom Drawer: Comprehensive Editing Controls */}
       <div className="w-full lg:w-[420px] bg-leather-deep border-t lg:border-t-0 lg:border-l border-line flex flex-col max-h-[50vh] lg:max-h-[calc(100vh-65px)] overflow-hidden">
         {/* Navigation Tabs */}
-        <div className="flex items-center justify-between border-b border-line px-3 py-2 overflow-x-auto gap-1">
+        <div className="mx-3 my-2 flex items-center gap-1 overflow-x-auto rounded-xl border border-line bg-leather p-1">
           {[
             { id: 'themes', label: 'Thème', icon: Sparkles },
             { id: 'formats', label: 'Format', icon: Layers },
@@ -351,10 +351,10 @@ export function PhotoboothEditor({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
+                className={`flex min-h-[44px] items-center gap-1.5 rounded-lg px-3 text-[13px] font-semibold whitespace-nowrap transition active:scale-[0.98] ${
                   isActive
-                    ? 'bg-brass text-ink shadow-md shadow-brass/20'
-                    : 'text-sand hover:text-paper hover:bg-leather'
+                    ? 'bg-brass text-ink'
+                    : 'text-sand hover:text-paper hover:bg-leather-soft'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
