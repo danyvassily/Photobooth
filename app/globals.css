@@ -22,6 +22,13 @@
   --safe-right: env(safe-area-inset-right, 0px);
 }
 
+html,
+body {
+  /* Un débordement latéral d'un seul élément ne doit jamais faire glisser la page. */
+  overflow-x: clip;
+  max-width: 100%;
+}
+
 body {
   color: var(--foreground);
   background:
@@ -133,18 +140,26 @@ body {
 .pb-cta:hover { filter: brightness(1.05); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.7), 0 14px 32px rgba(226, 84, 44, 0.36); }
 .pb-cta:active { transform: scale(0.97); }
 
-/* Halo chaud derrière le viseur */
+/* Halo chaud derrière le viseur — borné au cadre, il ne crée aucun scroll */
 .pb-glow::before {
   content: '';
   position: absolute;
-  left: 50%;
-  top: 6%;
-  width: 120%;
-  padding-bottom: 120%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  top: 4%;
+  bottom: 4%;
   border-radius: 9999px;
-  background: radial-gradient(circle, rgba(255, 176, 32, 0.22) 0%, transparent 62%);
+  background: radial-gradient(closest-side, rgba(255, 176, 32, 0.20) 0%, transparent 70%);
   pointer-events: none;
+}
+
+/* Tap : pas de délai 300 ms, pas de double-tap zoom, pas de surbrillance bleue */
+button,
+a,
+[role='button'],
+input[type='range'] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* iOS : un champ sous 16 px déclenche le zoom automatique */

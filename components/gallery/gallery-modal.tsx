@@ -133,14 +133,14 @@ export function GalleryModal({
             {prints.length > 0 && (
               <button
                 onClick={() => setShowClearConfirm(true)}
-                className="px-3 py-1.5 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-950/40 border border-red-900/40 transition"
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold text-red-400 [@media(hover:hover)]:hover:bg-red-950/40 border border-red-900/40 transition"
               >
                 Tout effacer
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-leather-soft text-sand hover:text-paper transition"
+              className="p-1.5 rounded-full [@media(hover:hover)]:hover:bg-leather-soft text-sand [@media(hover:hover)]:hover:text-paper transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -171,7 +171,7 @@ export function GalleryModal({
                   <div
                     key={print.id}
                     onClick={() => setSelectedPrint(print)}
-                    className="group relative rounded-xl overflow-hidden border border-line bg-leather cursor-pointer hover:border-brass/50 hover:shadow-xl transition-all"
+                    className="group relative rounded-xl overflow-hidden border border-line bg-leather cursor-pointer [@media(hover:hover)]:hover:border-brass/50 [@media(hover:hover)]:hover:shadow-xl transition-all"
                   >
                     <div className="relative aspect-[1/2] w-full overflow-hidden bg-espresso flex items-center justify-center">
                       <span className="absolute bottom-2 left-2 z-10 rounded-full bg-espresso/80 px-2 py-1 text-[11px] font-medium text-paper backdrop-blur-sm">
@@ -181,7 +181,7 @@ export function GalleryModal({
                       <img
                         src={print.thumbnailUrl}
                         alt="Tirage sauvegardé"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover [@media(hover:hover)]:group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
 
@@ -194,18 +194,18 @@ export function GalleryModal({
                         <div className="text-[10px] text-sand">{print.formatId.replace('-', ' ')}</div>
                       </div>
 
-                      <div className="flex items-center gap-1 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 opacity-90 sm:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={(e) => handleDownload(print, e)}
                           title="Télécharger"
-                          className="p-1.5 rounded-lg hover:bg-leather-soft text-paper hover:text-paper"
+                          className="p-1.5 rounded-lg [@media(hover:hover)]:hover:bg-leather-soft text-paper [@media(hover:hover)]:hover:text-paper"
                         >
                           <Download className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={(e) => handleDeleteSingle(print.id, e)}
                           title="Supprimer"
-                          className="p-1.5 rounded-lg hover:bg-red-950/60 text-sand hover:text-red-400"
+                          className="p-1.5 rounded-lg [@media(hover:hover)]:hover:bg-red-950/60 text-sand [@media(hover:hover)]:hover:text-red-400"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -243,7 +243,7 @@ export function GalleryModal({
                 {onSelectPrintToReedit && (
                   <button
                     onClick={() => handleSelectForReedit(selectedPrint)}
-                    className="px-3 py-2 rounded-xl bg-leather-soft hover:bg-leather-soft text-paper text-xs font-semibold flex items-center gap-1.5 transition"
+                    className="px-3 py-2 rounded-xl bg-leather-soft [@media(hover:hover)]:hover:bg-leather-soft text-paper text-xs font-semibold flex items-center gap-1.5 transition"
                   >
                     <ZoomIn className="w-4 h-4 text-brass" />
                     <span>Ré-éditer</span>
@@ -251,20 +251,20 @@ export function GalleryModal({
                 )}
                 <button
                   onClick={() => handleDownload(selectedPrint)}
-                  className="px-4 py-2 rounded-xl bg-brass hover:bg-brass text-ink text-xs font-bold flex items-center gap-1.5 transition"
+                  className="px-4 py-2 rounded-xl bg-brass [@media(hover:hover)]:hover:bg-brass text-ink text-xs font-bold flex items-center gap-1.5 transition"
                 >
                   <Download className="w-4 h-4" />
                   <span>Télécharger JPEG</span>
                 </button>
                 <button
                   onClick={() => handleShare(selectedPrint)}
-                  className="p-2 rounded-xl bg-leather-soft hover:bg-leather-soft text-paper transition"
+                  className="p-2 rounded-xl bg-leather-soft [@media(hover:hover)]:hover:bg-leather-soft text-paper transition"
                 >
                   <Share2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setSelectedPrint(null)}
-                  className="p-2 rounded-xl hover:bg-leather-soft text-sand hover:text-paper transition"
+                  className="p-2 rounded-xl [@media(hover:hover)]:hover:bg-leather-soft text-sand [@media(hover:hover)]:hover:text-paper transition"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -294,13 +294,13 @@ export function GalleryModal({
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowClearConfirm(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-leather-soft hover:bg-leather-soft text-xs font-semibold text-paper transition"
+                  className="flex-1 py-2.5 rounded-xl bg-leather-soft [@media(hover:hover)]:hover:bg-leather-soft text-xs font-semibold text-paper transition"
                 >
                   Annuler
                 </button>
                 <button
                   onClick={handleClearAll}
-                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-semibold text-paper transition"
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 [@media(hover:hover)]:hover:bg-red-500 text-xs font-semibold text-paper transition"
                 >
                   Confirmer
                 </button>

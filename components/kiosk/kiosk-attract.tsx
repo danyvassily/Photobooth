@@ -47,7 +47,7 @@ export function KioskAttract({
       <button
         onClick={onStart}
         aria-label="Commencer la séance photo"
-        className="pb-shutter relative z-10 mt-10 flex h-44 w-44 flex-col items-center justify-center gap-2 rounded-full border-2 border-brass-dark text-ink transition active:scale-95 sm:h-52 sm:w-52"
+        className="pb-shutter relative z-10 mt-10 flex h-44 w-44 flex-col items-center justify-center gap-2 rounded-full border-2 border-brass-dark text-ink transition active:scale-[0.98] sm:h-52 sm:w-52"
       >
         <span className="pb-label text-[11px] font-bold">Commencer</span>
         <span className="pb-label text-[9px] opacity-80">4 poses</span>
@@ -75,7 +75,7 @@ export function KioskAttract({
           <button
             onClick={onOpenThemes}
             aria-label="Choisir un thème"
-            className="pb-label rounded-full border border-brass-dark px-3 py-1 text-[9px] text-brass transition hover:text-brass-light"
+            className="pb-label rounded-full border border-brass-dark px-3 py-1 text-[9px] text-brass transition [@media(hover:hover)]:hover:text-brass-light"
           >
             Thème
           </button>

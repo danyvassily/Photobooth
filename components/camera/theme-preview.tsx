@@ -72,12 +72,14 @@ export function ThemePreview({ themeId, formatId, width = 74, className }: Theme
     });
     ctx.setLineDash([]);
 
-    // Footer label
-    ctx.fillStyle = theme.textColor;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = `bold ${Math.max(6, Math.round(h * 0.035))}px sans-serif`;
-    ctx.fillText(theme.name.toUpperCase().slice(0, 18), w / 2, h - Math.max(6, h * 0.035));
+    // Footer label — masqué sous 110 px : à cette échelle le texte est illisible
+    if (w >= 110) {
+      ctx.fillStyle = theme.textColor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = `bold ${Math.max(7, Math.round(h * 0.035))}px sans-serif`;
+      ctx.fillText(theme.name.toUpperCase().slice(0, 18), w / 2, h - Math.max(7, h * 0.035));
+    }
   }, [themeId, formatId, width]);
 
   return (

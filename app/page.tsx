@@ -158,7 +158,7 @@ export default function PhotoboothPage() {
   const isEditing = session.state.step === 'reviewing' || session.state.step === 'editing';
 
   return (
-    <main className="pb-grain relative min-h-screen bg-leather-deep text-paper flex flex-col justify-between overflow-x-hidden font-sans">
+    <main className="pb-grain relative mx-auto flex min-h-screen w-full max-w-[560px] flex-col justify-between overflow-x-hidden bg-leather-deep font-sans text-paper lg:border-x lg:border-line">
       {/* Top Header / Nav */}
       <NavigationBar
         currentThemeId={session.state.themeId}
@@ -180,7 +180,7 @@ export default function PhotoboothPage() {
           </span>
           <button
             onClick={exitKiosk}
-            className="underline underline-offset-2 hover:opacity-80"
+            className="underline underline-offset-2 [@media(hover:hover)]:hover:opacity-80"
             aria-label="Quitter le mode borne"
           >
             Quitter la borne

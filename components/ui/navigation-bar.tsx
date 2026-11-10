@@ -71,7 +71,7 @@ export function NavigationBar({
         {/* Current Theme Pill Button */}
         <button
           onClick={onOpenThemes}
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full bg-leather-soft/90 hover:bg-leather-soft text-paper border border-line transition"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full bg-leather-soft/90 [@media(hover:hover)]:hover:bg-leather-soft text-paper border border-line transition"
         >
           <Sparkles className="w-3.5 h-3.5 text-brass" />
           <span className="pb-label text-[10px]">{currentTheme.name}</span>
@@ -86,8 +86,8 @@ export function NavigationBar({
           title="Moteur de traitement (Rust/WASM ou JS)"
           className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border transition ${
             wasmAvailable
-              ? 'bg-espresso/40 text-brass-light border-brass-dark/50 hover:bg-espresso/40'
-              : 'bg-espresso/40 text-brass-light border-brass-dark/50 hover:bg-espresso/40'
+              ? 'bg-espresso/40 text-brass-light border-brass-dark/50 [@media(hover:hover)]:hover:bg-espresso/40'
+              : 'bg-espresso/40 text-brass-light border-brass-dark/50 [@media(hover:hover)]:hover:bg-espresso/40'
           }`}
         >
           <Cpu className="w-3.5 h-3.5" />
@@ -98,7 +98,7 @@ export function NavigationBar({
         {canInstall && (
           <button
             onClick={handleInstallClick}
-            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-brass-light to-brass-dark text-ink shadow-md hover:opacity-90 transition"
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-brass-light to-brass-dark text-ink shadow-md [@media(hover:hover)]:hover:opacity-90 transition"
           >
             <Download className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Installer</span>
@@ -110,7 +110,7 @@ export function NavigationBar({
           onClick={onOpenKiosk}
           title="Mode Borne Événement iPad"
           aria-label="Mode Borne Événement iPad"
-          className="p-2 rounded-xl text-paper hover:text-paper hover:bg-leather-soft border border-line transition"
+          className="p-2 rounded-xl text-paper [@media(hover:hover)]:hover:text-paper [@media(hover:hover)]:hover:bg-leather-soft border border-line transition"
         >
           <Monitor className="w-4 h-4" />
         </button>
@@ -120,7 +120,7 @@ export function NavigationBar({
           onClick={onOpenGallery}
           title="Galerie locale"
           aria-label="Galerie locale"
-          className="relative p-2 rounded-xl text-paper hover:text-paper hover:bg-leather-soft border border-line transition"
+          className="relative p-2 rounded-xl text-paper [@media(hover:hover)]:hover:text-paper [@media(hover:hover)]:hover:bg-leather-soft border border-line transition"
         >
           <ImageIcon className="w-4 h-4" />
           {galleryCount > 0 && (

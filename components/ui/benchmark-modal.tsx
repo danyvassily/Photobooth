@@ -48,7 +48,7 @@ export function BenchmarkModal({ isOpen, onClose }: BenchmarkModalProps) {
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-leather-soft text-sand hover:text-paper transition"
+            className="p-1.5 rounded-full [@media(hover:hover)]:hover:bg-leather-soft text-sand [@media(hover:hover)]:hover:text-paper transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -121,7 +121,7 @@ export function BenchmarkModal({ isOpen, onClose }: BenchmarkModalProps) {
           <button
             onClick={handleRunBenchmarks}
             disabled={isRunning}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-brass-light to-brass-dark hover:opacity-95 text-ink font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-brass/20 transition active:scale-95 disabled:opacity-50"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-brass-light to-brass-dark [@media(hover:hover)]:hover:opacity-95 text-ink font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-brass/20 transition active:scale-[0.98] disabled:opacity-50"
           >
             {isRunning ? (
               <>
