@@ -215,11 +215,11 @@ export function CameraView({
             <div className="flex w-full max-w-xs flex-col gap-3">
               <button
                 onClick={() => startStream()}
-                className="w-full py-3 px-5 rounded-xl font-semibold bg-brass hover:bg-brass text-ink transition shadow-lg shadow-brass/30"
+                className="w-full py-3 px-5 rounded-xl font-semibold bg-brass [@media(hover:hover)]:hover:bg-brass text-ink transition shadow-lg shadow-brass/30"
               >
                 Autoriser la caméra
               </button>
-              <label className="w-full py-2.5 px-4 rounded-xl text-sm font-medium bg-leather-soft hover:bg-leather-soft text-paper border border-line cursor-pointer flex items-center justify-center gap-2">
+              <label className="w-full py-2.5 px-4 rounded-xl text-sm font-medium bg-leather-soft [@media(hover:hover)]:hover:bg-leather-soft text-paper border border-line cursor-pointer flex items-center justify-center gap-2">
                 <Upload className="w-4 h-4" />
                 <span>Importer des photos</span>
                 <input
@@ -261,7 +261,7 @@ export function CameraView({
             onClick={onOpenThemes}
             title="Modifier le thème"
             aria-label="Aperçu du tirage — modifier le thème"
-            className="rounded-lg overflow-hidden border border-paper/20 shadow-lg bg-espresso/40 p-1 backdrop-blur-md active:scale-95 transition"
+            className="rounded-lg overflow-hidden border border-paper/20 shadow-lg bg-espresso/40 p-1 backdrop-blur-md active:scale-[0.98] transition"
           >
             <ThemePreview themeId={sessState.themeId} formatId={sessState.formatId} width={66} />
           </button>
@@ -309,7 +309,7 @@ export function CameraView({
                 className={`flex flex-col items-center gap-1 rounded-lg border px-1 py-1.5 transition ${
                   activeAccessoryId === null
                     ? 'bg-brass text-ink border-brass/60'
-                    : 'bg-leather/70 text-paper/75 border-paper/10 hover:text-paper'
+                    : 'bg-leather/70 text-paper/75 border-paper/10 [@media(hover:hover)]:hover:text-paper'
                 }`}
               >
                 <AccessoryIcon id="none" className="h-4 w-4" />
@@ -324,7 +324,7 @@ export function CameraView({
                   className={`flex flex-col items-center gap-1 rounded-lg border px-1 py-1.5 transition ${
                     activeAccessoryId === acc.id
                       ? 'bg-brass text-ink border-brass/60'
-                      : 'bg-leather/70 text-paper/75 border-paper/10 hover:text-paper'
+                      : 'bg-leather/70 text-paper/75 border-paper/10 [@media(hover:hover)]:hover:text-paper'
                   }`}
                 >
                   <AccessoryIcon id={acc.id} className="h-4 w-4" />
@@ -371,7 +371,7 @@ export function CameraView({
               className={`p-2.5 rounded-full backdrop-blur-md border transition ${
                 isMirror
                   ? 'bg-paper/20 text-paper border-paper/30'
-                  : 'bg-espresso/40 text-paper/70 border-paper/10 hover:text-paper'
+                  : 'bg-espresso/40 text-paper/70 border-paper/10 [@media(hover:hover)]:hover:text-paper'
               }`}
             >
               <FlipHorizontal className="w-4 h-4" />
@@ -381,7 +381,7 @@ export function CameraView({
             <button
               onClick={toggleFacingMode}
               title="Changer de caméra"
-              className="p-2.5 rounded-full bg-espresso/40 hover:bg-espresso/60 text-paper backdrop-blur-md border border-paper/10 transition"
+              className="p-2.5 rounded-full bg-espresso/40 [@media(hover:hover)]:hover:bg-espresso/60 text-paper backdrop-blur-md border border-paper/10 transition"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -435,7 +435,7 @@ export function CameraView({
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                       sessState.timerDuration === dur
                         ? 'bg-brass text-ink shadow-sm'
-                        : 'text-sand hover:text-paper'
+                        : 'text-sand [@media(hover:hover)]:hover:text-paper'
                     }`}
                   >
                     {dur}s
@@ -447,7 +447,7 @@ export function CameraView({
                 onClick={onOpenThemes}
                 aria-label="Choisir un thème"
                 title="Choisir un thème"
-                className="px-3 py-2 rounded-xl bg-leather hover:bg-leather-soft border border-line text-paper hover:text-paper text-xs font-semibold flex items-center gap-1.5 transition shrink-0"
+                className="px-3 py-2 rounded-xl bg-leather [@media(hover:hover)]:hover:bg-leather-soft border border-line text-paper [@media(hover:hover)]:hover:text-paper text-xs font-semibold flex items-center gap-1.5 transition shrink-0"
               >
                 <Sparkles className="w-4 h-4 text-brass" />
                 <span>Thème</span>
@@ -468,7 +468,7 @@ export function CameraView({
           <div className="flex items-center justify-center gap-4 max-w-md mx-auto w-full">
             <button
               onClick={sessState.isPaused ? session.resumeSession : session.pauseSession}
-              className="px-5 py-2.5 rounded-xl bg-leather hover:bg-leather-soft border border-line text-paper font-semibold text-sm flex items-center gap-2 transition"
+              className="px-5 py-2.5 rounded-xl bg-leather [@media(hover:hover)]:hover:bg-leather-soft border border-line text-paper font-semibold text-sm flex items-center gap-2 transition"
             >
               {sessState.isPaused ? (
                 <>
@@ -485,7 +485,7 @@ export function CameraView({
 
             <button
               onClick={session.cancelSession}
-              className="px-5 py-2.5 rounded-xl bg-red-950/40 hover:bg-red-900/40 border border-red-800/50 text-red-300 font-semibold text-sm flex items-center gap-2 transition"
+              className="px-5 py-2.5 rounded-xl bg-red-950/40 [@media(hover:hover)]:hover:bg-red-900/40 border border-red-800/50 text-red-300 font-semibold text-sm flex items-center gap-2 transition"
             >
               <X className="w-4 h-4" />
               <span>Annuler la séance</span>

@@ -42,7 +42,7 @@ export function ThemeSelector({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-leather-soft text-sand hover:text-paper transition"
+            className="p-1.5 rounded-full [@media(hover:hover)]:hover:bg-leather-soft text-sand [@media(hover:hover)]:hover:text-paper transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -62,7 +62,7 @@ export function ThemeSelector({
                 className={`flex shrink-0 flex-col text-left p-4 rounded-xl border transition-all relative overflow-hidden group ${
                   isSelected
                     ? 'border-brass bg-brass/10 shadow-lg shadow-brass/10 ring-1 ring-brass'
-                    : 'border-line bg-leather-soft/50 hover:bg-leather-soft hover:border-line'
+                    : 'border-line bg-leather-soft/50 [@media(hover:hover)]:hover:bg-leather-soft [@media(hover:hover)]:hover:border-line'
                 }`}
               >
                 {/* Tranche de pellicule du film */}
@@ -72,7 +72,7 @@ export function ThemeSelector({
                 />
 
                 <div className="flex items-center justify-between w-full mb-1">
-                  <span className="font-bold text-paper text-base group-hover:text-brass transition">
+                  <span className="font-bold text-paper text-base [@media(hover:hover)]:group-hover:text-brass transition">
                     {theme.name}
                   </span>
                   {isSelected && (
@@ -99,7 +99,7 @@ export function ThemeSelector({
         <div className="border-t border-line px-4 pb-safe pt-3">
           <button
             onClick={onClose}
-            className="w-full min-h-[44px] rounded-xl border border-line text-[15px] font-medium text-sand transition hover:text-paper active:scale-[0.98]"
+            className="w-full min-h-[44px] rounded-xl border border-line text-[15px] font-medium text-sand transition [@media(hover:hover)]:hover:text-paper active:scale-[0.98]"
           >
             Annuler
           </button>

@@ -304,7 +304,7 @@ export function PhotoboothEditor({
 
           <button
             onClick={handleShare}
-            className="py-3 px-5 rounded-xl font-semibold bg-leather-soft hover:bg-leather-soft text-paper border border-line flex items-center justify-center gap-2 transition active:scale-95"
+            className="py-3 px-5 rounded-xl font-semibold bg-leather-soft [@media(hover:hover)]:hover:bg-leather-soft text-paper border border-line flex items-center justify-center gap-2 transition active:scale-[0.98]"
           >
             <Share2 className="w-4 h-4 text-brass" />
             <span>Partager</span>
@@ -312,7 +312,7 @@ export function PhotoboothEditor({
 
           <button
             onClick={onBackToCamera}
-            className="p-3 rounded-xl bg-leather-soft hover:bg-leather-soft text-paper hover:text-paper border border-line transition"
+            className="p-3 rounded-xl bg-leather-soft [@media(hover:hover)]:hover:bg-leather-soft text-paper [@media(hover:hover)]:hover:text-paper border border-line transition"
             title="Reprendre une séance"
           >
             <Camera className="w-5 h-5" />
@@ -354,7 +354,7 @@ export function PhotoboothEditor({
                 className={`flex min-h-[44px] items-center gap-1.5 rounded-lg px-3 text-[13px] font-semibold whitespace-nowrap transition active:scale-[0.98] ${
                   isActive
                     ? 'bg-brass text-ink'
-                    : 'text-sand hover:text-paper hover:bg-leather-soft'
+                    : 'text-sand [@media(hover:hover)]:hover:text-paper [@media(hover:hover)]:hover:bg-leather-soft'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -383,7 +383,7 @@ export function PhotoboothEditor({
                     className={`p-3 rounded-xl border text-left transition ${
                       themeId === t.id
                         ? 'border-brass bg-brass/15 text-ink ring-1 ring-brass'
-                        : 'border-line bg-leather/60 hover:bg-leather text-paper'
+                        : 'border-line bg-leather/60 [@media(hover:hover)]:hover:bg-leather text-paper'
                     }`}
                   >
                     <div
@@ -412,7 +412,7 @@ export function PhotoboothEditor({
                     className={`w-full p-3.5 rounded-xl border flex items-center justify-between text-left transition ${
                       formatId === f.id
                         ? 'border-brass bg-brass/15 text-ink ring-1 ring-brass'
-                        : 'border-line bg-leather/60 hover:bg-leather text-paper'
+                        : 'border-line bg-leather/60 [@media(hover:hover)]:hover:bg-leather text-paper'
                     }`}
                   >
                     <div>
@@ -434,7 +434,7 @@ export function PhotoboothEditor({
                     <button
                       key={idx}
                       onClick={() => onRetakePhoto(idx)}
-                      className="p-2 rounded-lg bg-leather hover:bg-leather-soft border border-line text-xs font-medium text-paper hover:text-paper flex flex-col items-center gap-1 transition"
+                      className="p-2 rounded-lg bg-leather [@media(hover:hover)]:hover:bg-leather-soft border border-line text-xs font-medium text-paper [@media(hover:hover)]:hover:text-paper flex flex-col items-center gap-1 transition"
                     >
                       <span>Photo {idx + 1}</span>
                       <RefreshCw className="w-3 h-3 text-brass" />
@@ -471,7 +471,7 @@ export function PhotoboothEditor({
                     className={`py-2.5 px-3 rounded-xl border text-xs font-bold text-left transition ${
                       adjustments.filterPreset === flt.id
                         ? 'border-brass bg-brass/20 text-brass'
-                        : 'border-line bg-leather/60 hover:bg-leather text-paper'
+                        : 'border-line bg-leather/60 [@media(hover:hover)]:hover:bg-leather text-paper'
                     }`}
                   >
                     {flt.label}
@@ -502,7 +502,7 @@ export function PhotoboothEditor({
                       filterPreset: 'natural',
                     })
                   }
-                  className="text-[11px] text-brass hover:text-brass flex items-center gap-1"
+                  className="text-[11px] text-brass [@media(hover:hover)]:hover:text-brass flex items-center gap-1"
                 >
                   <Undo2 className="w-3 h-3" />
                   <span>Réinitialiser</span>
@@ -559,7 +559,7 @@ export function PhotoboothEditor({
                       className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition ${
                         isActive
                           ? 'border-brass bg-brass/20 text-ink'
-                          : 'border-line bg-leather/60 hover:bg-leather text-paper'
+                          : 'border-line bg-leather/60 [@media(hover:hover)]:hover:bg-leather text-paper'
                       }`}
                     >
                       <span className="text-xl">{acc.icon}</span>
@@ -579,7 +579,7 @@ export function PhotoboothEditor({
                       <button
                         key={c}
                         onClick={() => setColorStudioBg({ type: 'solid', primaryColor: c })}
-                        className="w-7 h-7 rounded-full border border-paper/20 hover:scale-110 transition"
+                        className="w-7 h-7 rounded-full border border-paper/20 [@media(hover:hover)]:hover:scale-110 transition"
                         style={{ backgroundColor: c }}
                       />
                     ))}

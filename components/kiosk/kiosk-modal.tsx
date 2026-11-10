@@ -72,7 +72,7 @@ export function KioskModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-leather-soft text-sand hover:text-paper transition"
+            className="p-1.5 rounded-full [@media(hover:hover)]:hover:bg-leather-soft text-sand [@media(hover:hover)]:hover:text-paper transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -152,7 +152,7 @@ export function KioskModal({
         <div className="p-4 border-t border-line bg-leather/60 flex items-center gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl bg-leather-soft hover:bg-leather-soft text-paper text-xs font-bold transition"
+            className="flex-1 py-3 rounded-xl bg-leather-soft [@media(hover:hover)]:hover:bg-leather-soft text-paper text-xs font-bold transition"
           >
             Annuler
           </button>
