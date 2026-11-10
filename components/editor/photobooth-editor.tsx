@@ -296,7 +296,7 @@ export function PhotoboothEditor({
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3 w-full max-w-md">
           <button
             onClick={() => void handleDownloadJpeg()}
-            className="flex-1 py-3 px-5 rounded-xl font-bold bg-gradient-to-r from-brass-light to-brass-dark hover:opacity-95 text-ink flex items-center justify-center gap-2 shadow-lg shadow-brass/25 transition active:scale-95"
+            className="pb-cta flex-1 py-3 px-5 rounded-xl font-bold text-ink flex items-center justify-center gap-2"
           >
             <Download className="w-4 h-4" />
             <span>Enregistrer JPEG</span>
@@ -633,7 +633,7 @@ export function PhotoboothEditor({
                 value={customText}
                 onChange={(e) => setCustomText(e.target.value)}
                 maxLength={45}
-                className="w-full px-4 py-2.5 rounded-xl bg-leather border border-line text-sm text-paper placeholder-sand focus:outline-none focus:border-brass transition"
+                className="w-full px-4 py-2.5 rounded-xl bg-leather border border-line text-base text-paper placeholder-sand focus:outline-none focus:border-brass transition"
               />
               <p className="text-[11px] text-sand">
                 Ce texte apparaîtra imprimé avec élégance dans le pied de page du tirage.

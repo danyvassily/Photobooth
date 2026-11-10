@@ -201,7 +201,7 @@ export function CameraView({
       )}
 
       {/* Main Video Viewport */}
-      <div className="pb-grain pb-vignette pb-viewfinder relative w-full flex-1 overflow-hidden bg-leather-deep">
+      <div className="pb-grain pb-vignette pb-viewfinder pb-glow relative w-full flex-1 overflow-hidden bg-leather-deep">
         {/* Permission Denied / Error view */}
         {camState.permission === 'denied' && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-6 py-4 text-center">
@@ -457,7 +457,7 @@ export function CameraView({
             {/* Giant Main Start Button — full width on phones, no clipping */}
             <button
               onClick={() => session.start4PhotoSession()}
-              className="relative group w-full sm:w-auto justify-center px-5 sm:px-8 py-3.5 rounded-full bg-gradient-to-r from-brass-light via-brass to-brass-dark text-ink font-extrabold text-sm sm:text-base tracking-wide shadow-xl shadow-brass/30 hover:shadow-brass/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2.5"
+              className="pb-cta relative group w-full sm:w-auto justify-center px-5 sm:px-8 py-3.5 rounded-full text-ink font-extrabold text-sm sm:text-base tracking-wide flex items-center gap-2.5"
             >
               <Camera className="w-5 h-5 shrink-0" />
               <span className="pb-label whitespace-nowrap text-[13px]">Démarrer (4 photos)</span>
