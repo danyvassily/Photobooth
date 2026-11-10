@@ -89,7 +89,7 @@ export function KioskModal({
               value={eventName}
               onChange={(e) => setEventName(e.target.value)}
               placeholder="Ex : Mariage de Sophie & Thomas"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-leather border border-line text-sm text-paper placeholder-sand focus:outline-none focus:border-brass-dark transition"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-leather border border-line text-base text-paper placeholder-sand focus:outline-none focus:border-brass-dark transition"
             />
           </div>
 
@@ -102,7 +102,7 @@ export function KioskModal({
               value={eventDate}
               onChange={(e) => setEventDate(e.target.value)}
               placeholder="Ex : 5 Novembre 2026 • Domaine des Oliviers"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-leather border border-line text-sm text-paper placeholder-sand focus:outline-none focus:border-brass-dark transition"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-leather border border-line text-base text-paper placeholder-sand focus:outline-none focus:border-brass-dark transition"
             />
           </div>
 
@@ -113,7 +113,7 @@ export function KioskModal({
             <select
               value={idleTimeout}
               onChange={(e) => setIdleTimeout(Number(e.target.value))}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-leather border border-line text-sm text-paper focus:outline-none focus:border-brass-dark"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-leather border border-line text-base text-paper focus:outline-none focus:border-brass-dark"
             >
               <option value={30}>30 secondes</option>
               <option value={60}>60 secondes (Recommandé)</option>
@@ -158,7 +158,7 @@ export function KioskModal({
           </button>
           <button
             onClick={handleLaunchKiosk}
-            className="flex-1 py-3 rounded-xl bg-gradient-to-r from-brass-light to-brass hover:opacity-95 text-ink text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-brass-dark/25 transition active:scale-95"
+            className="pb-cta flex-1 py-3 rounded-xl text-ink text-xs font-bold flex items-center justify-center gap-2"
           >
             <Maximize className="w-4 h-4" />
             <span>Lancer la Borne</span>
